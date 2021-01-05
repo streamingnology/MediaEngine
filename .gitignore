@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+
+#streamingnology
+.DS_Store
+common/3rd/git-submodule/*
+build/
