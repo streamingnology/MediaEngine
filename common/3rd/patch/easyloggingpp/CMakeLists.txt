@@ -47,6 +47,8 @@ configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/easyloggingpp.pc.cmakein
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/easyloggingpp.pc DESTINATION "${ELPP_PKGCONFIG_INSTALL_DIR}")
 
+add_definitions(-DAUTO_INITIALIZE_EASYLOGGINGPP)
+
 if (build_shared_lib)
         if (lib_utc_datetime)
                 add_definitions(-DELPP_UTC_DATETIME)
