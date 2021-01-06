@@ -34,4 +34,9 @@
 #streamingnology
 .DS_Store
 common/3rd/git-submodule/*
+common/build/
 build/
+
+application/MediaServer/.idea
+application/MediaServer/build
+application/MediaServer/cmake-build-debug
