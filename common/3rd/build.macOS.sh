@@ -101,11 +101,11 @@ build_uvcpp(){
 
 main(){
   build_Bento4
-  build_gpac
-  build_openssl
+  #build_gpac
+  #build_openssl
   build_rapidjson
   build_easyloggingpp
-  build_jwtcpp
+  #build_jwtcpp
   build_libuv
   build_uvcpp
 }
