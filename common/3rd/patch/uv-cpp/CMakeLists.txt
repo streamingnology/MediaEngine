@@ -21,10 +21,10 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11  -O2")
 MESSAGE("building...")
 
 ADD_LIBRARY (uv_cpp SHARED ${SOURCES} )
-TARGET_LINK_LIBRARIES(uv_cpp "libuv.so" -pthread)
+TARGET_LINK_LIBRARIES(uv_cpp uv -pthread)
 
 ADD_LIBRARY (uv_cpp_a STATIC ${SOURCES} )
-TARGET_LINK_LIBRARIES(uv_cpp_a "libuv_a.a." -pthread)
+TARGET_LINK_LIBRARIES(uv_cpp_a uv_a -pthread)
 
 install(TARGETS uv_cpp uv_cpp_a
         LIBRARY DESTINATION lib
