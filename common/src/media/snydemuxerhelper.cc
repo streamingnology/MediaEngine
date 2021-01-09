@@ -327,6 +327,20 @@ AP4_Result SampleReader::AudioConvertToSnyMediaSample(
 
   return AP4_SUCCESS;
 }
+AP4_Result SampleReader::OnSeek(AP4_UI64 timestamp_us,
+                                AP4_Ordinal& sample_index) {
+  eos_ = false;
+  while (!samples_.empty()) {
+    auto sample = samples_.front();
+    samples_.pop(); delete sample;
+  }
+  AP4_UI64 ts_ms = AP4_ConvertTime(timestamp_us, kTimescaleMicrosecond, kTimescaleMillisecond);
+  AP4_Result result = track_.GetSampleIndexForTimeStampMs(ts_ms, sample_index);
+  if (AP4_FAILED(result)) {
+    eos_ = true;
+  }
+  return result;
+}
 
 TrackSampleReader::TrackSampleReader(AP4_Track& track, bool selected)
     :SampleReader(track, selected), sample_index_(0) {}
@@ -336,6 +350,16 @@ AP4_Result TrackSampleReader::ReadSample(AP4_Sample& sample, AP4_DataBuffer& sam
     return AP4_ERROR_EOS;
   }
   return track_.ReadSample(sample_index_++, sample, sample_data);
+}
+
+AP4_Result TrackSampleReader::Seek(AP4_UI64 timestamp_us) {
+  AP4_Cardinal sample_index;
+  AP4_Result result = OnSeek(timestamp_us, sample_index);
+  if (AP4_FAILED(result)) {
+    return result;
+  }
+  sample_index_ = sample_index;
+  return result;
 }
 
 FragmentedSampleReader::FragmentedSampleReader(AP4_LinearReader& fragment_reader,
@@ -350,5 +374,13 @@ AP4_Result FragmentedSampleReader::ReadSample(AP4_Sample& sample, AP4_DataBuffer
       fragment_reader_.ReadNextSample(track_.GetId(), sample, sample_data);
   return result;
 }
-
+AP4_Result FragmentedSampleReader::Seek(AP4_UI64 timestamp_us) {
+  AP4_Cardinal sample_index;
+  AP4_Result result = OnSeek(timestamp_us, sample_index);
+  if (AP4_FAILED(result)) {
+    return result;
+  }
+  result = fragment_reader_.SetSampleIndex(track_.GetId(), sample_index);
+  return result;
+}
 }

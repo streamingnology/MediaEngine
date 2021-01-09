@@ -126,7 +126,12 @@ SnyResult SnyDemuxer::unselectTrack(SnyInt track_id) {
   return SnyFailture;
 }
 
-SnyResult SnyDemuxer::seek(SnyUI64 position_us) { return 0; }
+SnyResult SnyDemuxer::seek(SnyUI64 position_us) {
+  for (auto item : sample_readers_) {
+    item->Seek(position_us);
+  }
+  return 0;
+}
 
 SnyBool SnyDemuxer::reachEndOfFile() { return this->eos_; }
 

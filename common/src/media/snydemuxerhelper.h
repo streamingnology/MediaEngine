@@ -19,6 +19,9 @@ class SampleReader {
   AP4_Result GetSample(SnyMediaSample* &sample);
   AP4_Result ReadSample(SnyMediaSample* &sample);
 
+  virtual AP4_Result Seek(AP4_UI64 timestamp_us) = 0;
+  AP4_Result OnSeek(AP4_UI64 timestamp_us, AP4_Ordinal& sample_index);
+
   bool IsEos() const { return eos_; }
   void SetEos(bool flag) { this->eos_ = flag; }
 
@@ -50,6 +53,8 @@ class TrackSampleReader : public SampleReader {
 
   AP4_Result ReadSample(AP4_Sample& sample, AP4_DataBuffer& sample_data) override;
 
+  AP4_Result Seek(AP4_UI64 timestamp_us) override;
+
  private:
   AP4_Ordinal sample_index_;
 };
@@ -60,6 +65,8 @@ class FragmentedSampleReader : public SampleReader {
                          AP4_UI32 track_id, bool selected);
 
   AP4_Result ReadSample(AP4_Sample& sample, AP4_DataBuffer& sample_data) override;
+
+  AP4_Result Seek(AP4_UI64 timestamp_us) override;
 
  private:
   AP4_LinearReader& fragment_reader_;
