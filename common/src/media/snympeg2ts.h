@@ -1,54 +1,16 @@
 /*
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
+ *This file is from Bento4
  */
-/*****************************************************************
-|
-|    AP4 - MPEG2 Transport Streams
-|
-|    Copyright 2002-2009 Axiomatic Systems, LLC
-|
-|
-|    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
-|
-|    Unless you have obtained Bento4 under a difference license,
-|    this version of Bento4 is Bento4|GPL.
-|    Bento4|GPL is free software; you can redistribute it and/or modify
-|    it under the terms of the GNU General Public License as published by
-|    the Free Software Foundation; either version 2, or (at your option)
-|    any later version.
-|
-|    Bento4|GPL is distributed in the hope that it will be useful,
-|    but WITHOUT ANY WARRANTY; without even the implied warranty of
-|    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-|    GNU General Public License for more details.
-|
-|    You should have received a copy of the GNU General Public License
-|    along with Bento4|GPL; see the file COPYING.  If not, write to the
-|    Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
-|    02111-1307, USA.
-|
-****************************************************************/
-
-#ifndef _AP4_MPEG2_TS_H_
-#define _AP4_MPEG2_TS_H_
-
-/*----------------------------------------------------------------------
-|   includes
-+---------------------------------------------------------------------*/
+#ifndef STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYMPEG2TS_H
+#define STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYMPEG2TS_H
 #include "Ap4DataBuffer.h"
 #include "Ap4Types.h"
-
-/*----------------------------------------------------------------------
-|   classes
-+---------------------------------------------------------------------*/
 class AP4_ByteStream;
 class AP4_Sample;
 class AP4_SampleDescription;
 namespace sny {
-/*----------------------------------------------------------------------
-|   constants
-+---------------------------------------------------------------------*/
 const AP4_UI16 AP4_MPEG2_TS_DEFAULT_PID_PMT = 0x100;
 const AP4_UI16 AP4_MPEG2_TS_DEFAULT_PID_AUDIO = 0x101;
 const AP4_UI16 AP4_MPEG2_TS_DEFAULT_PID_VIDEO = 0x102;
@@ -63,9 +25,6 @@ const AP4_UI08 AP4_MPEG2_STREAM_TYPE_HEVC = 0x24;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ATSC_AC3 = 0x81;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ATSC_EAC3 = 0x81;
 
-/*----------------------------------------------------------------------
-|   SNY_Mpeg2TsWriter
-+---------------------------------------------------------------------*/
 /**
  * This class is a simple implementation of a converter that can
  * convert MP4 audio and video access units into an MPEG2 transport
@@ -75,7 +34,6 @@ const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ATSC_EAC3 = 0x81;
  */
 class SnyMpeg2TsWriter {
  public:
-  // classes
   class Stream {
    public:
     Stream(AP4_UI16 pid) : m_PID(pid), m_ContinuityCounter(0) {}
@@ -133,7 +91,6 @@ class SnyMpeg2TsWriter {
     AP4_DataBuffer m_Descriptor;
   };
 
-  // constructor
   SnyMpeg2TsWriter(AP4_UI16 pmt_pid = AP4_MPEG2_TS_DEFAULT_PID_PMT);
   ~SnyMpeg2TsWriter();
 
@@ -161,4 +118,4 @@ class SnyMpeg2TsWriter {
 };
 }  // namespace sny
 
-#endif  // _AP4_MPEG2_TS_H_
+#endif  // !STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYMPEG2TS_H

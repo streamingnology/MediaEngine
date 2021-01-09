@@ -2,48 +2,14 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-/*****************************************************************
-|
-|    AP4 - MPEG2 Transport Streams
-|
-|    Copyright 2002-2015 Axiomatic Systems, LLC
-|
-|
-|    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
-|
-|    Unless you have obtained Bento4 under a difference license,
-|    this version of Bento4 is Bento4|GPL.
-|    Bento4|GPL is free software; you can redistribute it and/or modify
-|    it under the terms of the GNU General Public License as published by
-|    the Free Software Foundation; either version 2, or (at your option)
-|    any later version.
-|
-|    Bento4|GPL is distributed in the hope that it will be useful,
-|    but WITHOUT ANY WARRANTY; without even the implied warranty of
-|    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-|    GNU General Public License for more details.
-|
-|    You should have received a copy of the GNU General Public License
-|    along with Bento4|GPL; see the file COPYING.  If not, write to the
-|    Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
-|    02111-1307, USA.
-|
-****************************************************************/
-
-/*----------------------------------------------------------------------
-|   includes
-+---------------------------------------------------------------------*/
 #include "media/snympeg2ts.h"
-#include "Ap4AvcParser.h"
-#include "Ap4ByteStream.h"
-#include "Ap4Mp4AudioInfo.h"
-#include "Ap4Sample.h"
-#include "Ap4SampleDescription.h"
-#include "Ap4Utils.h"
+#include "media/snyaudiofunction.h"
+#include <Ap4AvcParser.h>
+#include <Ap4ByteStream.h>
+#include <Ap4Sample.h>
+#include <Ap4SampleDescription.h>
+#include <Ap4Utils.h>
 namespace sny {
-/*----------------------------------------------------------------------
-|   constants
-+---------------------------------------------------------------------*/
 const unsigned int AP4_MPEG2TS_PACKET_SIZE = 188;
 const unsigned int AP4_MPEG2TS_PACKET_PAYLOAD_SIZE = 184;
 const unsigned int AP4_MPEG2TS_SYNC_BYTE = 0x47;
@@ -71,85 +37,6 @@ const unsigned int AP4_HEVC_NALU_TYPE_VPS_NUT = 32;
 const unsigned int AP4_HEVC_NALU_TYPE_SPS_NUT = 33;
 const unsigned int AP4_HEVC_NALU_TYPE_PPS_NUT = 34;
 
-/*----------------------------------------------------------------------
-|   GetSamplingFrequencyIndex
-+---------------------------------------------------------------------*/
-static unsigned int GetSamplingFrequencyIndex(unsigned int sampling_frequency) {
-  switch (sampling_frequency) {
-    case 96000:
-      return 0;
-    case 88200:
-      return 1;
-    case 64000:
-      return 2;
-    case 48000:
-      return 3;
-    case 44100:
-      return 4;
-    case 32000:
-      return 5;
-    case 24000:
-      return 6;
-    case 22050:
-      return 7;
-    case 16000:
-      return 8;
-    case 12000:
-      return 9;
-    case 11025:
-      return 10;
-    case 8000:
-      return 11;
-    case 7350:
-      return 12;
-    default:
-      return 0;
-  }
-}
-
-/*----------------------------------------------------------------------
-|   MakeAdtsHeader
-+---------------------------------------------------------------------*/
-static void MakeAdtsHeader(unsigned char bits[7], unsigned int frame_size,
-                           unsigned int sampling_frequency_index,
-                           unsigned int channel_configuration) {
-  bits[0] = 0xFF;
-  bits[1] = 0xF1;  // 0xF9 (MPEG2)
-  bits[2] = (AP4_UI08)(0x40 | (sampling_frequency_index << 2) |
-                       (channel_configuration >> 2));
-  bits[3] = (AP4_UI08)(((channel_configuration & 0x3) << 6) |
-                       ((frame_size + 7) >> 11));
-  bits[4] = ((frame_size + 7) >> 3) & 0xFF;
-  bits[5] = (((frame_size + 7) << 5) & 0xFF) | 0x1F;
-  bits[6] = 0xFC;
-
-  /*
-     0:  syncword 12 always: '111111111111'
-     12: ID 1 0: MPEG-4, 1: MPEG-2
-     13: layer 2 always: '00'
-     15: protection_absent 1
-     16: profile 2
-     18: sampling_frequency_index 4
-     22: private_bit 1
-     23: channel_configuration 3
-     26: original/copy 1
-     27: home 1
-     28: emphasis 2 only if ID == 0
-
-     ADTS Variable header: these can change from frame to frame
-     28: copyright_identification_bit 1
-     29: copyright_identification_start 1
-     30: aac_frame_length 13 length of the frame including header (in bytes)
-     43: adts_buffer_fullness 11 0x7FF indicates VBR
-     54: no_raw_data_blocks_in_frame 2
-     ADTS Error check
-     crc_check 16 only if protection_absent == 0
-     */
-}
-
-/*----------------------------------------------------------------------
-|   CRC_Table
-+---------------------------------------------------------------------*/
 static AP4_UI32 const CRC_Table[256] = {
     0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b,
     0x1a864db2, 0x1e475005, 0x2608edb8, 0x22c9f00f, 0x2f8ad6d6, 0x2b4bcb61,
@@ -195,22 +82,14 @@ static AP4_UI32 const CRC_Table[256] = {
     0x933eb0bb, 0x97ffad0c, 0xafb010b1, 0xab710d06, 0xa6322bdf, 0xa2f33668,
     0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4};
 
-/*----------------------------------------------------------------------
-|   ComputeCRC
-+---------------------------------------------------------------------*/
 static AP4_UI32 ComputeCRC(const unsigned char* data, unsigned int data_size) {
   AP4_UI32 crc = 0xFFFFFFFF;
-
   for (unsigned int i = 0; i < data_size; i++) {
     crc = (crc << 8) ^ CRC_Table[((crc >> 24) ^ *data++) & 0xFF];
   }
-
   return crc;
 }
 
-/*----------------------------------------------------------------------
-|   SNY_Mpeg2TsWriter::Stream::WritePacketHeader
-+---------------------------------------------------------------------*/
 void SnyMpeg2TsWriter::Stream::WritePacketHeader(bool payload_start,
                                                  unsigned int& payload_size,
                                                  bool with_pcr, AP4_UI64 pcr,
@@ -267,18 +146,14 @@ void SnyMpeg2TsWriter::Stream::WritePacketHeader(bool payload_start,
     }
   }
 }
-/*----------------------------------------------------------------------
- |   SNY_Mpeg2TsWriter::SampleStream::WriteMPEG2CCTO16
- +---------------------------------------------------------------------*/
+
 void SnyMpeg2TsWriter::Stream::WriteMPEG2PacketCCTO16(AP4_ByteStream& output) {
   while (GetCC() != 0x0) {
     unsigned int payload_size = 0;
     WritePacketHeader(false, payload_size, true, 0, output);
   }
 }
-/*----------------------------------------------------------------------
-|   SNY_Mpeg2TsWriter::SampleStream::WritePES
-+---------------------------------------------------------------------*/
+
 AP4_Result SnyMpeg2TsWriter::SampleStream::WritePES(const unsigned char* data,
                                                     unsigned int data_size,
                                                     AP4_UI64 dts, bool with_dts,
@@ -355,9 +230,6 @@ AP4_Result SnyMpeg2TsWriter::SampleStream::WritePES(const unsigned char* data,
   return AP4_SUCCESS;
 }
 
-/*----------------------------------------------------------------------
-|   AP4_Mpeg2TsAudioSampleStream
-+---------------------------------------------------------------------*/
 class AP4_Mpeg2TsAudioSampleStream : public SnyMpeg2TsWriter::SampleStream {
  public:
   static AP4_Result Create(AP4_UI16 pid, AP4_UI32 timescale,
@@ -378,9 +250,6 @@ class AP4_Mpeg2TsAudioSampleStream : public SnyMpeg2TsWriter::SampleStream {
                                        descriptor, descriptor_length) {}
 };
 
-/*----------------------------------------------------------------------
-|   AP4_Mpeg2TsAudioSampleStream::Create
-+---------------------------------------------------------------------*/
 AP4_Result AP4_Mpeg2TsAudioSampleStream::Create(
     AP4_UI16 pid, AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id,
     SnyMpeg2TsWriter::SampleStream*& stream, const AP4_UI08* descriptor,
@@ -390,9 +259,6 @@ AP4_Result AP4_Mpeg2TsAudioSampleStream::Create(
   return AP4_SUCCESS;
 }
 
-/*----------------------------------------------------------------------
-|   AP4_Mpeg2TsAudioSampleStream::WriteSample
-+---------------------------------------------------------------------*/
 AP4_Result AP4_Mpeg2TsAudioSampleStream::WriteSample(
     AP4_Sample& sample, AP4_DataBuffer& sample_data,
     AP4_SampleDescription* sample_description, bool with_pcr,
@@ -403,9 +269,6 @@ AP4_Result AP4_Mpeg2TsAudioSampleStream::WriteSample(
   return AP4_SUCCESS;
 }
 
-/*----------------------------------------------------------------------
-|   AP4_Mpeg2TsVideoSampleStream
-+---------------------------------------------------------------------*/
 class AP4_Mpeg2TsVideoSampleStream : public SnyMpeg2TsWriter::SampleStream {
  public:
   static AP4_Result Create(AP4_UI16 pid, AP4_UI32 timescale,
@@ -434,9 +297,6 @@ class AP4_Mpeg2TsVideoSampleStream : public SnyMpeg2TsWriter::SampleStream {
   AP4_UI64 m_SamplesWritten;
 };
 
-/*----------------------------------------------------------------------
-|   AP4_Mpeg2TsVideoSampleStream::AP4_Mpeg2TsVideoSampleStream
-+---------------------------------------------------------------------*/
 AP4_Result AP4_Mpeg2TsVideoSampleStream::Create(
     AP4_UI16 pid, AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id,
     SnyMpeg2TsWriter::SampleStream*& stream, const AP4_UI08* descriptor,
@@ -447,9 +307,6 @@ AP4_Result AP4_Mpeg2TsVideoSampleStream::Create(
   return AP4_SUCCESS;
 }
 
-/*----------------------------------------------------------------------
-|   AP4_Mpeg2TsVideoSampleStream::WriteSample
-+---------------------------------------------------------------------*/
 AP4_Result AP4_Mpeg2TsVideoSampleStream::WriteSample(
     AP4_Sample& sample, AP4_DataBuffer& sample_data,
     AP4_SampleDescription* sample_description, bool with_pcr,
@@ -476,18 +333,12 @@ AP4_Result AP4_Mpeg2TsVideoSampleStream::WriteSample(
                   with_pcr, output);
 }
 
-/*----------------------------------------------------------------------
-|   SNY_Mpeg2TsWriter::SNY_Mpeg2TsWriter
-+---------------------------------------------------------------------*/
 SnyMpeg2TsWriter::SnyMpeg2TsWriter(AP4_UI16 pmt_pid)
     : ptr_audio_sample_stream_(nullptr), ptr_video_sample_stream_(nullptr) {
   ptr_pat_stream_ = new Stream(0);
   ptr_pmt_stream_ = new Stream(pmt_pid);
 }
 
-/*----------------------------------------------------------------------
-|   SNY_Mpeg2TsWriter::~SNY_Mpeg2TsWriter
-+---------------------------------------------------------------------*/
 SnyMpeg2TsWriter::~SnyMpeg2TsWriter() {
   delete ptr_pat_stream_;
   delete ptr_pmt_stream_;
@@ -495,9 +346,6 @@ SnyMpeg2TsWriter::~SnyMpeg2TsWriter() {
   delete ptr_video_sample_stream_;
 }
 
-/*----------------------------------------------------------------------
-|   SNY_Mpeg2TsWriter::WritePAT
-+---------------------------------------------------------------------*/
 AP4_Result SnyMpeg2TsWriter::WritePAT(AP4_ByteStream& output) {
   unsigned int payload_size = AP4_MPEG2TS_PACKET_PAYLOAD_SIZE;
   ptr_pat_stream_->WritePacketHeader(true, payload_size, false, 0, output);
@@ -528,9 +376,6 @@ AP4_Result SnyMpeg2TsWriter::WritePAT(AP4_ByteStream& output) {
   return AP4_SUCCESS;
 }
 
-/*----------------------------------------------------------------------
-|   SNY_Mpeg2TsWriter::WritePMT
-+---------------------------------------------------------------------*/
 AP4_Result SnyMpeg2TsWriter::WritePMT(AP4_ByteStream& output) {
   // check that we have at least one media stream
   if (ptr_audio_sample_stream_ == nullptr &&
@@ -608,9 +453,6 @@ AP4_Result SnyMpeg2TsWriter::WritePMT(AP4_ByteStream& output) {
   return AP4_SUCCESS;
 }
 
-/*----------------------------------------------------------------------
-|   SNY_Mpeg2TsWriter::SetAudioStream
-+---------------------------------------------------------------------*/
 AP4_Result SnyMpeg2TsWriter::SetAudioStream(AP4_UI32 timescale,
                                             AP4_UI08 stream_type,
                                             AP4_UI16 stream_id,
@@ -628,9 +470,6 @@ AP4_Result SnyMpeg2TsWriter::SetAudioStream(AP4_UI32 timescale,
   return AP4_SUCCESS;
 }
 
-/*----------------------------------------------------------------------
-|   SNY_Mpeg2TsWriter::SetVideoStream
-+---------------------------------------------------------------------*/
 AP4_Result SnyMpeg2TsWriter::SetVideoStream(AP4_UI32 timescale,
                                             AP4_UI08 stream_type,
                                             AP4_UI16 stream_id,
@@ -663,9 +502,6 @@ void SnyMpeg2TsWriter::WriteMPEG2PacketCCTO16(AP4_ByteStream& output) {
   }
 }
 
-/*----------------------------------------------------------------------
-|   SNY_Mpeg2TsWriter::SampleStream::WriteSample
-+---------------------------------------------------------------------*/
 AP4_Result SnyMpeg2TsWriter::SampleStream::WriteSample(
     AP4_Sample& sample, AP4_SampleDescription* sample_description,
     bool with_pcr, AP4_ByteStream& output) {
