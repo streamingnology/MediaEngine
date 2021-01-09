@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 PROJECT(streamingnology_common_library)
-SET(CMAKE_CXX_STANDARD 14)
+SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 ADD_DEFINITIONS(-DELPP_THREAD_SAFE)
