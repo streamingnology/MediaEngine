@@ -265,6 +265,7 @@ AP4_Result SampleReader::VideoConvertToSnyMediaSample(AP4_Sample& sample,
   AP4_UI64 duration_us = AP4_ConvertTime(sample.GetDuration(), track_.GetMediaTimeScale(), kTimescaleMicrosecond);
   auto *media_sample = new SnyMediaSample(kMediaTypeVideo, dts_us, pts_us, duration_us);
   media_sample->setData((const char*)pes_data.GetData(), pes_data.GetDataSize());
+  media_sample->setKey(sample.IsSync());
   samples_.push(media_sample);
   return AP4_SUCCESS;
 }
@@ -375,12 +376,7 @@ AP4_Result FragmentedSampleReader::ReadSample(AP4_Sample& sample, AP4_DataBuffer
   return result;
 }
 AP4_Result FragmentedSampleReader::Seek(AP4_UI64 timestamp_us) {
-  AP4_Cardinal sample_index;
-  AP4_Result result = OnSeek(timestamp_us, sample_index);
-  if (AP4_FAILED(result)) {
-    return result;
-  }
-  result = fragment_reader_.SetSampleIndex(track_.GetId(), sample_index);
-  return result;
+  auto ts_ms = AP4_ConvertTime(timestamp_us, kTimescaleMicrosecond, kTimescaleMillisecond);
+  return fragment_reader_.SeekTo(ts_ms);
 }
 }
