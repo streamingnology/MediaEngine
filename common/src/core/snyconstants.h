@@ -74,20 +74,5 @@ enum SnyServiceType {
   kServiceMediaLive,
 };
 
-enum SnyMediaType {
-  kMediaTypeUnknown = 0,
-  kMediaTypeAudio,
-  kMediaTypeVideo,
-  kMediaTypeSubtitle,
-};
-
-enum SnyCodec {
-  kCodecUnknown = 0,
-  kCodecAac,
-  kCodecAc3,
-  kCodecH264,
-  kCodecH265,
-};
-
 }  // namespace sny
 #endif  // !STREAMINGNOLOGY_CORE_SNYCONSTANTS_H
