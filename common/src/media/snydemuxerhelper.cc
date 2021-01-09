@@ -376,6 +376,7 @@ AP4_Result FragmentedSampleReader::ReadSample(AP4_Sample& sample, AP4_DataBuffer
   return result;
 }
 AP4_Result FragmentedSampleReader::Seek(AP4_UI64 timestamp_us) {
+  SetEos(false);
   auto ts_ms = AP4_ConvertTime(timestamp_us, kTimescaleMicrosecond, kTimescaleMillisecond);
   return fragment_reader_.SeekTo(ts_ms);
 }
