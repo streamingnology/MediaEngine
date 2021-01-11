@@ -7,9 +7,7 @@
 //
 //==============================================================================
 #pragma once
-
-#include <base/ovlibrary/ovlibrary.h>
-
+#include "helper/string.h"
 enum class RtmpChunkType : uint8_t
 {
 	T0 = 0b00000000,

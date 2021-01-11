@@ -8,11 +8,10 @@
 //==============================================================================
 #include "rtmp_import_chunk.h"
 
-#include "../rtmp_provider_private.h"
 #include "rtmp_chunk_parser.h"
 
 RtmpImportChunk::RtmpImportChunk(int chunk_size)
-	: _vhost_app_name(info::VHostAppName::InvalidVHostAppName())
+	: _vhost_app_name("")
 {
 	_chunk_size = chunk_size;
 }
@@ -414,18 +413,18 @@ size_t RtmpImportChunk::GetMessageCount() const
 	return _message_queue.Size();
 }
 
-void RtmpImportChunk::SetAppName(const info::VHostAppName &vhost_app_name)
+void RtmpImportChunk::SetAppName(const std::string &vhost_app_name)
 {
 	_vhost_app_name = vhost_app_name;
 
-	_message_queue.SetAlias(ov::String::FormatString("RTMP queue for %s/%s", _vhost_app_name.CStr(), _stream_name.CStr()));
+	_message_queue.SetAlias(ov::String::FormatString("RTMP queue for %s/%s", _vhost_app_name.c_str(), _stream_name.CStr()));
 }
 
 void RtmpImportChunk::SetStreamName(const ov::String &stream_name)
 {
 	_stream_name = stream_name;
 
-	_message_queue.SetAlias(ov::String::FormatString("RTMP queue for %s/%s", _vhost_app_name.CStr(), _stream_name.CStr()));
+	_message_queue.SetAlias(ov::String::FormatString("RTMP queue for %s/%s", _vhost_app_name.c_str(), _stream_name.CStr()));
 }
 
 void RtmpImportChunk::Destroy()

@@ -110,4 +110,4 @@ main(){
   build_uvcpp
 }
 
-main
+build_openssl

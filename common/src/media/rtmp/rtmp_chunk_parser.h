@@ -9,10 +9,8 @@
 #pragma once
 
 #include "rtmp_define.h"
-
+#include "helper/byte_stream.h"
 #include <memory>
-
-#include <base/ovlibrary/ovlibrary.h>
 
 class RtmpChunkParser
 {
