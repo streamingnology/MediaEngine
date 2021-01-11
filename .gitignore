@@ -35,6 +35,7 @@
 .DS_Store
 common/3rd/git-submodule/*
 common/build/
+common/cmake-build-debug
 build/
 
 application/MediaServer/.idea

@@ -13,6 +13,7 @@
 #define logw(...) do {} while(false)
 #define loge(...) do {} while(false)
 #define logc(...) do {} while(false)
+#define logp(...) do {} while(false)
 
 #define logtd(format, ...)                            logd(OV_LOG_TAG, format, ## __VA_ARGS__) // NOLINT
 #define logtp(format, ...)                            logp(OV_LOG_TAG ".Packet", format, ## __VA_ARGS__) // NOLINT
