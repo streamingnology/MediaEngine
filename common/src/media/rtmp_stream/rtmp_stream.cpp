@@ -252,6 +252,7 @@ bool RtmpStream::CheckSignedPolicy()
 			{
 				//_url->SetPort(_remote->GetLocalAddress()->Port());
         //TODO
+        /*
         if (conn_ != nullptr) {
           std::string conn_name = conn_->Name();
 
@@ -263,6 +264,8 @@ bool RtmpStream::CheckSignedPolicy()
           addrStr += ":" + std::to_string(port);
           _url->SetPort(port);
         }
+         */
+        _url->SetPort(836);
 			}
 
 			_stream_name = _url->Stream();
@@ -285,7 +288,7 @@ bool RtmpStream::CheckSignedPolicy()
 				if(_url->Port() == 0)
 				{
           //TODO:
-
+          /*
           if (conn_ != nullptr) {
             std::string conn_name = conn_->Name();
 
@@ -297,6 +300,8 @@ bool RtmpStream::CheckSignedPolicy()
             addrStr += ":" + std::to_string(port);
             _url->SetPort(port);
           }
+           */
+          _url->SetPort(836);
 					//_url->SetPort(_remote->GetLocalAddress()->Port());
 				}
 
