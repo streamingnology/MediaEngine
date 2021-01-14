@@ -8,7 +8,7 @@
 //==============================================================================
 
 #pragma once
-
+#include <iostream>
 #include "../rtmp/helper/common_types.h"
 #include "../rtmp/helper/media_track.h"
 #include "../rtmp/helper/url.h"
@@ -22,7 +22,12 @@
 #include <uv11.hpp>
 #include <media/snympeg2ts.h>
 #include <Ap4FileByteStream.h>
+#include <core/snyconstants.h>
 #include "media/bitstream/h264/h264_avcc_to_annexb.h"
+#include <media/bitstream/aac/aac_latm_to_adts.h>
+#include <Ap4.h>
+#include "core/event.h"
+#include <memory>
 #define MAX_STREAM_MESSAGE_COUNT (100)
 #define BASELINE_PROFILE (66)
 #define MAIN_PROFILE (77)
@@ -141,29 +146,62 @@ namespace pvd
       return published_;
     }
     bool published_;
-    std::vector<uint8_t> extra_data_;
+    std::vector<uint8_t> video_extra_data_;
+    std::vector<uint8_t> audio_extra_data_;
 
     bool SendFrame(const std::shared_ptr<MediaPacket> &packet) {
       //TODO:
-      if (output_ == nullptr) {
+      if (false) {
         AP4_Result result = AP4_FileByteStream::Create(output_file_name.c_str(), AP4_FileByteStream::STREAM_MODE_WRITE, output_);
       }
-      if (output_) {
+      if (ts_muxer_ == nullptr) {
+        ts_muxer_ = createTsMuxer();
+      }
+      if (ts_muxer_) {
         if (packet->GetMediaType() == cmn::MediaType::Video) {
           std::vector<uint8_t> extradata;
           if( H264AvccToAnnexB::GetExtradata(packet->GetPacketType(), packet->GetData(), extradata) == true)
           {
-            extra_data_ = extradata;
+            video_extra_data_ = extradata;
             return false;
           }
 
-          if(H264AvccToAnnexB::Convert(packet->GetPacketType(), packet->GetData(), extra_data_) == false)
+          if(H264AvccToAnnexB::Convert(packet->GetPacketType(), packet->GetData(),
+                                        video_extra_data_) == false)
           {
             logte("Failed to change bitstream format ");
 
             return false;
           }
-          output_->Write(packet->GetData()->GetData(), packet->GetDataLength());
+          AP4_Sample ap4Sample;
+          ap4Sample.SetDts(packet->GetDts());
+          ap4Sample.SetCts(packet->GetPts());
+          ap4Sample.SetSync(false);
+          AP4_DataBuffer sample_data(packet->GetData()->GetData(), packet->GetDataLength());
+          video_stream_->WriteSample(ap4Sample, sample_data, nullptr, true, *fileByteStream_);
+          auto d = std::to_string(packet->GetDts());
+          //output_->Write(packet->GetData()->GetData(), packet->GetDataLength());
+        }
+        if (packet->GetMediaType() == cmn::MediaType::Audio) {
+          std::vector<uint8_t> extradata;
+          if( AACLatmToAdts::GetExtradata(packet->GetPacketType(), packet->GetData(), extradata) == true)
+          {
+            audio_extra_data_ = extradata;
+            return false;
+          }
+
+          if(AACLatmToAdts::Convert(packet->GetPacketType(), packet->GetData(), audio_extra_data_) == false)
+          {
+            logte("Failed to change bitstream format");
+            return false;
+          }
+
+          AP4_Sample ap4Sample;
+          ap4Sample.SetDts(packet->GetDts());
+          ap4Sample.SetCts(packet->GetPts());
+          ap4Sample.SetSync(true);
+          AP4_DataBuffer sample_data(packet->GetData()->GetData(), packet->GetDataLength());
+          audio_stream_->WriteSample(ap4Sample, sample_data, nullptr, true, *fileByteStream_);
         }
       }
         return true;
@@ -187,6 +225,46 @@ namespace pvd
 
       return item->second;
     }
+
+    sny::SnyMpeg2TsWriter* createTsMuxer() {
+      static unsigned int pmt_pid           = sny::AP4_MPEG2_TS_DEFAULT_PID_PMT;
+      static unsigned int video_pid         = sny::AP4_MPEG2_TS_DEFAULT_PID_VIDEO;
+      static unsigned int audio_pid         = sny::AP4_MPEG2_TS_DEFAULT_PID_AUDIO;
+      static unsigned int audio_stream_type = sny::AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
+      static unsigned int audio_stream_id   = sny::AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO;
+      static unsigned int video_stream_type = sny::AP4_MPEG2_STREAM_TYPE_AVC;
+      static unsigned int video_stream_id   = sny::AP4_MPEG2_TS_DEFAULT_STREAM_ID_VIDEO;
+
+      auto mpeg2Writer         = new sny::SnyMpeg2TsWriter(pmt_pid);
+
+      AP4_Result result;
+      std::string filename = "/Users/developer/Desktop/tmp/rtmp.ts";
+      result = AP4_FileByteStream::Create(filename.c_str(), AP4_FileByteStream::STREAM_MODE_WRITE,
+                                          fileByteStream_);
+      if (AP4_FAILED(result)) {
+        fprintf(stderr, "ERROR: cannot open output (%d)\n", result);
+        return nullptr;
+      }
+
+      result = mpeg2Writer->SetAudioStream(sny::kTimescaleMillisecond, audio_stream_type, audio_stream_id,
+                                           audio_stream_, audio_pid, nullptr, 0);
+      if (AP4_FAILED(result)) {
+        return nullptr;
+      }
+      result = mpeg2Writer->SetVideoStream(sny::kTimescaleMillisecond, video_stream_type, video_stream_id,
+                                           video_stream_, video_pid, nullptr, 0);
+      if (AP4_FAILED(result)) {
+        return nullptr;
+      }
+      mpeg2Writer->WritePAT(*fileByteStream_);
+      mpeg2Writer->WritePMT(*fileByteStream_);
+      return mpeg2Writer;
+    }
+
+    sny::SnyMpeg2TsWriter* ts_muxer_ = nullptr;
+    AP4_ByteStream* fileByteStream_ = nullptr;
+    sny::SnyMpeg2TsWriter::SampleStream* audio_stream_ = nullptr;
+    sny::SnyMpeg2TsWriter::SampleStream* video_stream_ = nullptr;
 
 		// For sending data
 		//std::shared_ptr<ov::Socket> _remote = nullptr;

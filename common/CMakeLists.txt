@@ -63,6 +63,7 @@ ADD_LIBRARY(snycommon SHARED ${COMMON_SOURCES})
 TARGET_LINK_LIBRARIES(snycommon OpenSSL::SSL)
 TARGET_LINK_LIBRARIES(snycommon OpenSSL::Crypto)
 TARGET_LINK_LIBRARIES(snycommon ap4)
-TARGET_LINK_LIBRARIES(snycommon uv)
+TARGET_LINK_LIBRARIES(snycommon uv pthread)
 TARGET_LINK_LIBRARIES(snycommon uv_cpp)
 TARGET_LINK_LIBRARIES(snycommon easyloggingpp)
+
