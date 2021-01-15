@@ -78,7 +78,7 @@ namespace ov
 			return _query_string;
 		}
 
-		const bool HasQueryKey(ov::String key) const
+		bool HasQueryKey(const ov::String& key) const
 		{
 			ParseQueryIfNeeded();
 			if(_query_map.find(key) == _query_map.end())
@@ -89,9 +89,9 @@ namespace ov
 			return true;
 		}
 
-		const ov::String GetQueryValue(ov::String key) const
+		ov::String GetQueryValue(const ov::String& key) const
 		{
-			if(HasQueryKey(key) == false)
+			if(!HasQueryKey(key))
 			{
 				return "";
 			}

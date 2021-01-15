@@ -119,7 +119,10 @@ namespace ov
 		// Group 6: <path>
 		// Group 7: ?<query string>
 		// Group 8: <query string>
-		if (std::regex_search(url_string, matches, std::regex(R"((.+?)://([^:/]+)(:([0-9]+))?(/([^\?]+)?)?(\?([^\?]+)?(.+)?)?)")) == false)
+		if (!std::regex_search(
+            url_string, matches,
+            std::regex(
+                R"((.+?)://([^:/]+)(:([0-9]+))?(/([^\?]+)?)?(\?([^\?]+)?(.+)?)?)")))
 		{
 			return nullptr;
 		}
@@ -160,7 +163,7 @@ namespace ov
 
 	bool Url::PushBackQueryKey(const ov::String &key)
 	{
-		if(_has_query_string == true)
+		if(_has_query_string)
 		{
 			_query_string.Append("&");
 		}
@@ -174,7 +177,7 @@ namespace ov
 
 	bool Url::PushBackQueryKey(const ov::String &key, const ov::String &value)
 	{
-		if(_has_query_string == true)
+		if(_has_query_string)
 		{
 			_query_string.Append("&");
 		}
@@ -189,7 +192,7 @@ namespace ov
 	// Keep the order of queries.
 	bool Url::RemoveQueryKey(const ov::String &remove_key)
 	{
-		if ((_has_query_string == false))
+		if (!_has_query_string)
 		{
 			return false;
 		}
@@ -197,7 +200,7 @@ namespace ov
 		ov::String new_query_string;
 		bool first_query = true;
 		// Split the query string into the map
-		if (_query_string.IsEmpty() == false)
+		if (!_query_string.IsEmpty())
 		{
 			const auto &query_list = _query_string.Split("&");
 			for (auto &query : query_list)
@@ -215,7 +218,7 @@ namespace ov
 
 				if(key.UpperCaseString() != remove_key.UpperCaseString())
 				{
-					if(first_query == true)
+					if(first_query)
 					{
 						first_query = false;
 					}
@@ -237,7 +240,7 @@ namespace ov
 
 	void Url::ParseQueryIfNeeded() const
 	{
-		if ((_has_query_string == false) || _query_parsed)
+		if (!_has_query_string || _query_parsed)
 		{
 			return;
 		}
@@ -245,12 +248,12 @@ namespace ov
 		auto lock_guard = std::lock_guard(_query_map_mutex);
 
 		// DCL
-		if (_query_parsed == false)
+		if (!_query_parsed)
 		{
 			_query_parsed = true;
 
 			// Split the query string into the map
-			if (_query_string.IsEmpty() == false)
+			if (!_query_string.IsEmpty())
 			{
 				const auto &query_list = _query_string.Split("&");
 
@@ -288,7 +291,7 @@ namespace ov
 			"%s://%s%s%s%s%s",
 			_scheme.CStr(),
 			_host.CStr(), (_port > 0) ? ov::String::FormatString(":%d", _port).CStr() : "",
-			_path.CStr(), ((include_query_string == false) || _query_string.IsEmpty()) ? "" : "?", include_query_string ? _query_string.CStr() : "");
+			_path.CStr(), (!include_query_string || _query_string.IsEmpty()) ? "" : "?", include_query_string ? _query_string.CStr() : "");
 	}
 
 	ov::String Url::ToString() const
