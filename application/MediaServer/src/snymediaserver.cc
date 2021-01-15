@@ -1,12 +1,6 @@
-#include <iostream>
-#include "media/snyidemuxer.h"
-#include "media/snydemuxer.h"
-#include "media/snymediainfo.h"
-#include <media/snympeg2ts.h>
-#include <iostream>
-#include <atomic>
 #include <uv11.hpp>
-#include "media/rtmp_stream/rtmp_stream.h"
+#include <source/rtmp/rtmp_stream.h>
+
 using namespace uv;
 
 int main(int argc, char** args)
