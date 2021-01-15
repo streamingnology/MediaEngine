@@ -6,12 +6,8 @@
 //  Copyright (c) 2018 AirenSoft. All rights reserved.
 //
 //==============================================================================
-
-#include <stdint.h>
-#include <vector>
-#include <memory>
-#include <math.h>
 #pragma once
+#include <vector>
 
 namespace ov
 {

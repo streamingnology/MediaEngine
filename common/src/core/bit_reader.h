@@ -1,13 +1,11 @@
 #pragma once
-
 #include <utility>
 #include <cstdint>
 #include <type_traits>
 #include <algorithm>
-
-#include "core/byte_io.h"
-#include "core/string.h"
-#include "core/assert.h"
+#include "byte_io.h"
+#include "string.h"
+#include "assert.h"
 
 class BitReader
 {

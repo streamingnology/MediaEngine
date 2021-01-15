@@ -7,10 +7,10 @@
 //
 //==============================================================================
 #pragma once
-
 #include <mutex>
 #include <condition_variable>
-#include "core/ovdata_structure.h"
+#include "ovdata_structure.h"
+
 namespace ov
 {
 	class Event

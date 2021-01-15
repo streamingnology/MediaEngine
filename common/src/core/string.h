@@ -7,9 +7,6 @@
 //
 //==============================================================================
 #pragma once
-
-#include <memory.h>
-
 #include <cstdio>
 #include <cstdarg>
 #include <cstdlib>

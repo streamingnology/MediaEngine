@@ -7,10 +7,8 @@
 //
 //==============================================================================
 #pragma once
-
 #include <cstdlib>
-
-#include "core/log.h"
+#include "log.h"
 
 #ifdef DEBUG
 #	define OV_ASSERT_TO_STRING(x)				# x

@@ -7,18 +7,13 @@
 //
 //==============================================================================
 #pragma once
-
 #define __STDC_FORMAT_MACROS 1
-
-#include <inttypes.h>
-
 #include <chrono>
 #include <cmath>
 #include <ctime>
-#include <iomanip>
-#include <string>
-#include "core/string.h"
-#include "core/memory_utilities.h"
+#include <cinttypes>
+#include "string.h"
+#include "memory_utilities.h"
 
 namespace ov
 {

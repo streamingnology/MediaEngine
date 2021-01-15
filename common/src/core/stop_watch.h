@@ -2,7 +2,7 @@
 #include <chrono>
 #include <mutex>
 #include <atomic>
-#include "core/string.h"
+#include "string.h"
 
 namespace ov
 {

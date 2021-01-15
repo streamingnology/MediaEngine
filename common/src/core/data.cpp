@@ -6,12 +6,10 @@
 //  Copyright (c) 2018 AirenSoft. All rights reserved.
 //
 //==============================================================================
-#include "data.h"
-
 #include <cstdint>
-
-#include "core/assert.h"
-#include "core/dump_utilities.h"
+#include "data.h"
+#include "assert.h"
+#include "dump_utilities.h"
 
 namespace ov
 {

@@ -8,7 +8,7 @@
 //==============================================================================
 #pragma once
 #include <mutex>
-#include "core/string.h"
+#include "string.h"
 
 namespace ov
 {

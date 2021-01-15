@@ -1,6 +1,4 @@
 #pragma once
-
-#include <stdint.h>
 #include <limits>
 
 template<typename T,

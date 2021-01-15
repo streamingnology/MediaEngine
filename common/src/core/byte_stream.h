@@ -7,14 +7,12 @@
 //
 //==============================================================================
 #pragma once
-
 #include <memory>
 #include <string>
 #include <string_view>
-
-#include "core/assert.h"	 // NOLINT
-#include "core/byte_ordering.h"
-#include "core/data.h"
+#include "assert.h"	 // NOLINT
+#include "byte_ordering.h"
+#include "data.h"
 
 #define OV_DECLARE_READ_FUNCTION(type, name, func) \
 	inline type name() noexcept                    \

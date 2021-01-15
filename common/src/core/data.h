@@ -7,15 +7,12 @@
 //
 //==============================================================================
 #pragma once
-
-#include "core/string.h"
-#include "core/assert.h"
-#include "core/memory_utilities.h"
-#include "core/data.h"
-
 #include <memory>
 #include <algorithm>
 #include <cstddef>
+#include "string.h"
+#include "memory_utilities.h"
+#include "data.h"
 
 namespace ov
 {

@@ -6,18 +6,13 @@
 //  Copyright (c) 2018 AirenSoft. All rights reserved.
 //
 //==============================================================================
-#include "core/dump_utilities.h"
-
-#include "core/data.h"
-
-#define __STDC_FORMAT_MACROS
-
-#include <cxxabi.h>
-
+#include "dump_utilities.h"
+#include "data.h"
 #include <cctype>
 #include <cinttypes>
 #include <cmath>
-
+#include <cxxabi.h>
+#define __STDC_FORMAT_MACROS
 namespace ov
 {
 	String Demangle(const char *func)
