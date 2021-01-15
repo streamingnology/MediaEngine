@@ -12,10 +12,10 @@
 #include <cstdint>
 #include <map>
 
-#include "common_types.h"
-#include "media_type.h"
-#include "assert.h"
-#include "data.h"
+#include "media/common_types.h"
+#include "media/media_type.h"
+#include "core/assert.h"
+#include "core/data.h"
 
 enum class MediaPacketFlag : uint8_t
 {

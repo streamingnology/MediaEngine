@@ -1,8 +1,8 @@
-#include "../nalu/nal_unit_bitstream_parser.h"
+#include "media/bitstream/nalu/nal_unit_bitstream_parser.h"
 #include "h264_sps_pps_tracker.h"
 #include "h264.h"
 #include "h264_nal_unit_types.h"
-#include "../../rtmp/helper/log.h"
+#include "core/log.h"
 #define OV_LOG_TAG "H264SpsPpsTracker"
 
 bool H264SpsPpsTracker::AddSps(const uint8_t *sps, size_t length)

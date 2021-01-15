@@ -1,8 +1,6 @@
-#include "aac_adts.h"
-
 #include <memory>
-#include "../../rtmp/helper/log.h"
-#include "../../rtmp/helper/bit_reader.h"
+#include "core/bit_reader.h"
+#include "aac_adts.h"
 
 #define OV_LOG_TAG "AACAdts"
 

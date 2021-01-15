@@ -1,8 +1,7 @@
 #pragma once
-
-#include "../nalu/nal_unit_bitstream_parser.h"
 #include <cstdint>
-#include "../../rtmp/helper/data.h"
+#include "media/bitstream/nalu/nal_unit_bitstream_parser.h"
+#include "core/data.h"
 #include "h264_nal_unit_types.h"
 
 #define H264_NAL_UNIT_HEADER_SIZE 1

@@ -1,7 +1,6 @@
-
 #include "aac_latm_to_adts.h"
-#include "media/bitstream/aac/aac_specific_config.h"
-#include "media/rtmp/helper/bit_writer.h"
+#include "aac_specific_config.h"
+#include "core/bit_writer.h"
 
 #define OV_LOG_TAG "AACLatmToAdts"
 

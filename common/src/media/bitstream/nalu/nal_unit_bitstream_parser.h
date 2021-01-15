@@ -1,8 +1,7 @@
 #pragma once
-
-#include "../../rtmp/helper/bit_reader.h"
 #include <cstdint>
 #include <vector>
+#include "core/bit_reader.h"
 
 // Parses the payload of the NAL unit without the starting byte
 class NalUnitBitstreamParser : public BitReader

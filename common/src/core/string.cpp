@@ -6,15 +6,13 @@
 //  Copyright (c) 2018 AirenSoft. All rights reserved.
 //
 //==============================================================================
-#include "./data.h"
-#include "./string.h"
-#include "./assert.h"
-#include "./memory_utilities.h"
-
 #include <cstdarg>
 #include <cctype>
 #include <algorithm>
-
+#include "core/data.h"
+#include "core/string.h"
+#include "core/assert.h"
+#include "core/memory_utilities.h"
 namespace ov
 {
 	String::String(const char *string)

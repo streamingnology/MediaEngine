@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "../../rtmp/helper/data.h"
+#include "core/data.h"
 // ISO 14496-15, 5.2.4.1
 //	aligned(8) class AVCDecoderConfigurationRecord {
 //		unsigned int(8) configurationVersion = 1;

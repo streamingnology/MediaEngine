@@ -1,7 +1,6 @@
 #include "flv_parser.h"
-
-#include "../rtmp/helper/bit_reader.h"
-#include "../rtmp/helper/log.h"
+#include "core/bit_reader.h"
+#include "core/log.h"
 #define OV_LOG_TAG "FlvParser"
 
 bool FlvVideoData::Parse(const uint8_t *data, size_t data_length, FlvVideoData &video_data)

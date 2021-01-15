@@ -1,6 +1,6 @@
 #include "h264_nal_unit_types.h"
 
-#include "../../rtmp/helper/log.h"
+#include "core/log.h"
 
 #define OV_LOG_TAG "H264NalUnitTypes"
 

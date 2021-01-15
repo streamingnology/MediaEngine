@@ -5,9 +5,9 @@
 #include <type_traits>
 #include <algorithm>
 
-#include "byte_io.h"
-#include "string.h"
-#include "assert.h"
+#include "core/byte_io.h"
+#include "core/string.h"
+#include "core/assert.h"
 
 class BitReader
 {

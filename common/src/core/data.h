@@ -8,10 +8,10 @@
 //==============================================================================
 #pragma once
 
-#include "./string.h"
-#include "./assert.h"
-#include "./memory_utilities.h"
-#include "./data.h"
+#include "core/string.h"
+#include "core/assert.h"
+#include "core/memory_utilities.h"
+#include "core/data.h"
 
 #include <memory>
 #include <algorithm>

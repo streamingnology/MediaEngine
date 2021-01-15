@@ -10,8 +10,8 @@
 
 #include <cstdint>
 
-#include "./assert.h"
-#include "./dump_utilities.h"
+#include "core/assert.h"
+#include "core/dump_utilities.h"
 
 namespace ov
 {

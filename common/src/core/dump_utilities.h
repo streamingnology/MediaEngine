@@ -8,7 +8,7 @@
 //==============================================================================
 #pragma once
 
-#include "./string.h"
+#include "core/string.h"
 
 namespace ov
 {

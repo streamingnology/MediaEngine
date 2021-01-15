@@ -1,7 +1,6 @@
 #include "h264_decoder_configuration_record.h"
-
-#include "../../rtmp/helper/bit_reader.h"
-#include "../../rtmp/helper/bit_writer.h"
+#include "core/bit_reader.h"
+#include "core/bit_writer.h"
 #define OV_LOG_TAG "AVCDecoderConfigurationRecord"
 
 bool AVCDecoderConfigurationRecord::Parse(const uint8_t *data, size_t data_length, AVCDecoderConfigurationRecord &record)

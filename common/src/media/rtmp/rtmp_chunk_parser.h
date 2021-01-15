@@ -7,10 +7,9 @@
 //
 //==============================================================================
 #pragma once
-
-#include "rtmp_define.h"
-#include "helper/byte_stream.h"
 #include <memory>
+#include "rtmp_define.h"
+#include "core/byte_stream.h"
 
 class RtmpChunkParser
 {

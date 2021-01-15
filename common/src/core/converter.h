@@ -17,8 +17,8 @@
 #include <ctime>
 #include <iomanip>
 #include <string>
-#include "./string.h"
-#include "memory_utilities.h"
+#include "core/string.h"
+#include "core/memory_utilities.h"
 
 namespace ov
 {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../rtmp/helper/media_buffer.h"
-#include "../../rtmp/helper/media_type.h"
-#include "../../rtmp/helper/data.h"
+#include "media/media_buffer.h"
+#include "media/media_type.h"
+#include "core/data.h"
 class NalUnitFragmentHeader
 {
 public:

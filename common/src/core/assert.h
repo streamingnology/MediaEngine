@@ -10,7 +10,7 @@
 
 #include <cstdlib>
 
-#include "log.h"
+#include "core/log.h"
 
 #ifdef DEBUG
 #	define OV_ASSERT_TO_STRING(x)				# x

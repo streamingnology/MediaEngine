@@ -10,7 +10,7 @@
 
 #include <mutex>
 #include <condition_variable>
-#include "media/rtmp/helper/ovdata_structure.h"
+#include "core/ovdata_structure.h"
 namespace ov
 {
 	class Event

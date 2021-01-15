@@ -1,7 +1,6 @@
 #pragma once
-
-#include "../../rtmp/helper/media_buffer.h"
 #include <cstdint>
+#include "media/media_buffer.h"
 
 class H264AvccToAnnexB
 {

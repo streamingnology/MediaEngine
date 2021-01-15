@@ -8,7 +8,7 @@
 //==============================================================================
 #include "h265_converter.h"
 
-#include "../h264/h264_converter.h"
+#include "media/bitstream/h264/h264_converter.h"
 
 #define OV_LOG_TAG "H265Converter"
 

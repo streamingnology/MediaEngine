@@ -13,11 +13,11 @@
 #include <queue>
 #include <shared_mutex>
 
-#include "./dump_utilities.h"
-#include "./log.h"
-#include "./ovdata_structure.h"
-#include "./stop_watch.h"
-#include "./string.h"
+#include "core/dump_utilities.h"
+#include "core/log.h"
+#include "core/ovdata_structure.h"
+#include "core/stop_watch.h"
+#include "core/string.h"
 
 namespace ov
 {

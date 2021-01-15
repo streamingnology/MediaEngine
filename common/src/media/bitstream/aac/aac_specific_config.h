@@ -85,7 +85,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <vector>
-#include "../../rtmp/helper/string.h"
+#include "core/string.h"
 // MPEG-4 Audio Object Types:
 enum AacObjectType : uint8_t
 {

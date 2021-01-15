@@ -2,7 +2,7 @@
 #include "h264_avcc_to_annexb.h"
 #include "h264_decoder_configuration_record.h"
 #include "h264_parser.h"
-#include "../../rtmp/helper/byte_stream.h"
+#include "core/byte_stream.h"
 
 #define OV_LOG_TAG "H264AvccToAnnexB"
 

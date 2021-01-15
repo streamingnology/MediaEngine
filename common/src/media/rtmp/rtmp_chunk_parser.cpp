@@ -7,8 +7,8 @@
 //
 //==============================================================================
 #include "rtmp_chunk_parser.h"
-#include "./helper/byte_stream.h"
-#include "helper/log.h"
+#include "core/byte_stream.h"
+#include "core/log.h"
 off_t RtmpChunkParser::Parse(const std::map<uint32_t, std::shared_ptr<const RtmpChunkHeader>> &chunk_map, ov::ByteStream &stream)
 {
 	off_t total_parsed_bytes = 0LL;

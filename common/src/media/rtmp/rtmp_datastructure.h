@@ -7,7 +7,7 @@
 //
 //==============================================================================
 #pragma once
-#include "helper/string.h"
+#include "core/string.h"
 enum class RtmpChunkType : uint8_t
 {
 	T0 = 0b00000000,

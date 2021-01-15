@@ -1,8 +1,7 @@
-#include "aac_specific_config.h"
-#include "../../rtmp/helper/bit_reader.h"
-#include "../../rtmp/helper/bit_writer.h"
-#include "../../rtmp/helper/memory_view.h"
 #include <cstdint>
+#include "aac_specific_config.h"
+#include "core/bit_reader.h"
+#include "core/bit_writer.h"
 #define OV_LOG_TAG "AACSpecificConfig"
 
 bool AACSpecificConfig::Parse(const uint8_t *data, size_t data_length, AACSpecificConfig &config)

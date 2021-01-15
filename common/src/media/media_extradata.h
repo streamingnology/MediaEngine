@@ -1,10 +1,8 @@
 #pragma once
-
-#include "assert.h"
-#include "memory_view.h"
-
 #include <cstdint>
 #include <vector>
+#include "assert.h"
+#include "memory_view.h"
 
 class H264Extradata
 {

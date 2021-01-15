@@ -8,14 +8,9 @@
 //==============================================================================
 
 #include "rtmp_stream.h"
-#include "../rtmp/helper/url.h"
-#include "../rtmp/helper/media_type.h"
-#include "../rtmp/helper/media_buffer.h"
-#include "../rtmp/helper/media_extradata.h"
-#include "../rtmp/helper/log.h"
-#include "../flv/flv_parser.h"
-#include "../bitstream/h264/h264_decoder_configuration_record.h"
-#include "../bitstream/aac/aac_specific_config.h"
+#include "media/flv/flv_parser.h"
+#include "media/bitstream/h264/h264_decoder_configuration_record.h"
+#include "media/bitstream/aac/aac_specific_config.h"
 
 /*
 Process of publishing 

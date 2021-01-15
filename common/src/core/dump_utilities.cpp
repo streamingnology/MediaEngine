@@ -6,10 +6,9 @@
 //  Copyright (c) 2018 AirenSoft. All rights reserved.
 //
 //==============================================================================
-#include "./dump_utilities.h"
+#include "core/dump_utilities.h"
 
-#include "./data.h"
-#include "./ovlibrary_private.h"
+#include "core/data.h"
 
 #define __STDC_FORMAT_MACROS
 

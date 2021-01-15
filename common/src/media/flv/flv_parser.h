@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-#include "../rtmp/helper/byte_io.h"
+#include "core/byte_io.h"
 #define MIN_FLV_VIDEO_DATA_LENGTH		5
 
 enum class FlvVideoFrameTypes : uint8_t

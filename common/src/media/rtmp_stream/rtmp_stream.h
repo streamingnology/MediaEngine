@@ -9,16 +9,16 @@
 
 #pragma once
 #include <iostream>
-#include "../rtmp/helper/common_types.h"
-#include "../rtmp/helper/media_track.h"
-#include "../rtmp/helper/url.h"
-#include "../rtmp/helper/media_buffer.h"
+#include "media/common_types.h"
+#include "media/media_track.h"
+#include "core/url.h"
+#include "media/media_buffer.h"
 
-#include "../rtmp/amf_document.h"
-#include "../rtmp/rtmp_chunk_parser.h"
-#include "../rtmp/rtmp_export_chunk.h"
-#include "../rtmp/rtmp_handshake.h"
-#include "../rtmp/rtmp_import_chunk.h"
+#include "media/rtmp/amf_document.h"
+#include "media/rtmp/rtmp_chunk_parser.h"
+#include "media/rtmp/rtmp_export_chunk.h"
+#include "media/rtmp/rtmp_handshake.h"
+#include "media/rtmp/rtmp_import_chunk.h"
 #include <uv11.hpp>
 #include <media/snympeg2ts.h>
 #include <Ap4FileByteStream.h>

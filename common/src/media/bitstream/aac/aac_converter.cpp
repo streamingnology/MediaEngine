@@ -1,11 +1,8 @@
-
-#include "aac_converter.h"
-
-#include "../../rtmp/helper/bit_reader.h"
-#include "../../rtmp/helper/bit_writer.h"
+#include "core/bit_reader.h"
+#include "core/bit_writer.h"
 #include "aac_specific_config.h"
-
 #include "aac_adts.h"
+#include "aac_converter.h"
 
 #define OV_LOG_TAG "AACConverter"
 

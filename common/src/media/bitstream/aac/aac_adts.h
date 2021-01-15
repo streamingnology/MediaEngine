@@ -1,10 +1,7 @@
 #pragma once
-
-#include "aac_specific_config.h"
-#include "../../rtmp/helper/bit_reader.h"
 #include <cstdint>
-
-
+#include "aac_specific_config.h"
+#include "core/bit_reader.h"
 
 #define ADTS_MIN_SIZE	7
 

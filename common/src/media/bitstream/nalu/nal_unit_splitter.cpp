@@ -1,6 +1,6 @@
-#include "nal_unit_splitter.h"
 #include <memory>
-#include "../../rtmp/helper/data.h"
+#include "core/data.h"
+#include "nal_unit_splitter.h"
 std::shared_ptr<NalUnitList> NalUnitSplitter::Parse(const uint8_t* bitstream, size_t bitstream_length)
 {
     auto nal_unit_list = std::make_shared<NalUnitList>();

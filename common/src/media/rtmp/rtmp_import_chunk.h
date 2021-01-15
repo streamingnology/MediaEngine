@@ -16,7 +16,7 @@
 #include "rtmp_define.h"
 #include "rtmp_mux_util.h"
 #include "rtmp_datastructure.h"
-#include "helper/queue.h"
+#include "core/queue.h"
 
 class RtmpImportChunk : public RtmpMuxUtil
 {
