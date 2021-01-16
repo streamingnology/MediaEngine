@@ -13,10 +13,9 @@ int main(int argc, char** args)
 
   std::atomic<uint64_t> dataSize(0);
   uv::TcpServer server(loop);
-  server.setMessageCallback([&rtmp_stream](uv::TcpConnectionPtr ptr,const char* data, ssize_t size)
+  server.setMessageCallback([&rtmp_stream](uv::TcpConnectionPtr ptr,const char* data_buff, ssize_t data_size)
                             {
-                              std::shared_ptr<ov::Data> rtmp_data = std::make_shared<ov::Data>(data, size);
-                              rtmp_stream->OnDataReceived(rtmp_data);
+                              rtmp_stream->OnDataReceived(data_buff, data_size);
                             });
   server.setNewConnectCallback([&rtmp_stream](std::weak_ptr<TcpConnection> conn) {
     std::string conn_name;
