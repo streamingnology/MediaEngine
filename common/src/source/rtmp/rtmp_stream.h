@@ -46,7 +46,7 @@ namespace pvd
 		explicit RtmpStream(StreamSourceType source_type, uint32_t channel_id);
 		~RtmpStream();
 
-    bool OnDataReceived(const std::shared_ptr<const ov::Data> &data);
+    bool OnDataReceived(const char* data_buffer, int data_size);
     void SetConn(std::shared_ptr<uv::TcpConnection> conn) {
       this->conn_ = conn;
     }

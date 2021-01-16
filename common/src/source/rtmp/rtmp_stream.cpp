@@ -73,15 +73,15 @@ namespace pvd
 	{
 	}
 
-	bool RtmpStream::OnDataReceived(const std::shared_ptr<const ov::Data> &data)
+	bool RtmpStream::OnDataReceived(const char* data_buffer, int data_size)
 	{
-		if ((_remained_data == nullptr) || _remained_data->IsEmpty())
+		if (_remained_data == nullptr)
 		{
-			_remained_data = data->Clone();
+			_remained_data = std::make_shared<ov::Data>(data_buffer, data_size);
 		}
 		else
 		{
-			_remained_data->Append(data);
+			_remained_data->Append(data_buffer, data_size);
 		}
 
 		if (_remained_data->GetLength() > RTMP_MAX_PACKET_SIZE)
