@@ -11,7 +11,7 @@
 #include "media/flv/flv_parser.h"
 #include "media/bitstream/h264/h264_decoder_configuration_record.h"
 #include "media/bitstream/aac/aac_specific_config.h"
-
+#include <media/snymediafunction.h>
 /*
 Process of publishing 
 
@@ -129,6 +129,22 @@ namespace pvd
 		
 		return true;
 	}
+void RtmpStream::SetConn(std::shared_ptr<uv::TcpConnection> conn) {
+  this->conn_ = conn;
+}
+bool RtmpStream::AddTrack(std::shared_ptr<MediaTrack> track)
+{
+  _tracks.insert(std::make_pair(track->GetId(), track));
+  return true;
+}
+
+std::shared_ptr<MediaTrack> RtmpStream::GetTrack(int32_t id) {
+  auto item = _tracks.find(id);
+  if (item == _tracks.end()) {
+    return nullptr;
+  }
+  return item->second;
+}
 
 	void RtmpStream::OnAmfConnect(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, double transaction_id)
 	{
@@ -1053,7 +1069,7 @@ bool RtmpStream::CheckSignedPolicy()
 											  cmn::BitstreamFormat::H264_AVCC, // RTMP's packet type is AVCC 
 											 packet_type);
 
-			SendFrame(video_frame);
+			ConvertToSnyMediaSample(video_frame);
 
 			// Statistics for debugging
 			if (flv_video.FrameType() == FlvVideoFrameTypes::KEY_FRAME)
@@ -1191,7 +1207,7 @@ bool RtmpStream::CheckSignedPolicy()
 			}
 
 			auto data = std::make_shared<ov::Data>(flv_audio.Payload(), flv_audio.PayloadLength());
-			auto frame = std::make_shared<MediaPacket>(cmn::MediaType::Audio,
+			auto audio_frame = std::make_shared<MediaPacket>(cmn::MediaType::Audio,
 											  RTMP_AUDIO_TRACK_ID,
 											  data,
 											  pts,
@@ -1199,7 +1215,7 @@ bool RtmpStream::CheckSignedPolicy()
 											  cmn::BitstreamFormat::AAC_LATM,
 											  packet_type);
 
-			SendFrame(frame);											
+			ConvertToSnyMediaSample(audio_frame);
 
 			_last_audio_timestamp = message->header->completed.timestamp;
 			_audio_frame_count++;
@@ -1655,4 +1671,99 @@ bool RtmpStream::CheckSignedPolicy()
 
 		return codec_string;
 	}
+  bool RtmpStream::ConvertToSnyMediaSample(std::shared_ptr<MediaPacket> media_packet) {
+    if (media_packet->GetMediaType() == cmn::MediaType::Video) {
+      std::vector<uint8_t> extradata;
+      if (H264AvccToAnnexB::GetExtradata(media_packet->GetPacketType(),
+                                         media_packet->GetData(), extradata)) {
+        video_extra_data_ = extradata;
+        return false;
+      }
+
+      if (!H264AvccToAnnexB::Convert(media_packet->GetPacketType(),
+                                     media_packet->GetData(),
+                                     video_extra_data_)) {
+        logte("Failed to change bitstream format ");
+
+        return false;
+      }
+
+      auto dts_us = sny::convertTimescale(media_packet->GetDts(),
+                                          sny::kTimescaleMillisecond,
+                                          sny::kTimescaleMicrosecond);
+      auto pts_us = sny::convertTimescale(media_packet->GetPts(),
+                                          sny::kTimescaleMillisecond,
+                                          sny::kTimescaleMicrosecond);
+      auto duration_us = sny::convertTimescale(media_packet->GetDuration(),
+                                               sny::kTimescaleMillisecond,
+                                               sny::kTimescaleMicrosecond);
+      auto video_media_sample = std::make_shared<sny::SnyMediaSample>(sny::kMediaTypeVideo,
+                                                                      dts_us,
+                                                                      pts_us,
+                                                                      duration_us);
+      video_media_sample->setKey(false);  // TODO:
+      video_media_sample->setData(
+          (const char *)media_packet->GetData()->GetData(),
+          media_packet->GetDataLength());
+      SendFrame(video_media_sample);
+    }
+    if (media_packet->GetMediaType() == cmn::MediaType::Audio) {
+      std::vector<uint8_t> extradata;
+      if (AACLatmToAdts::GetExtradata(media_packet->GetPacketType(),
+                                      media_packet->GetData(), extradata)) {
+        audio_extra_data_ = extradata;
+        return false;
+      }
+
+      if (!AACLatmToAdts::Convert(media_packet->GetPacketType(),
+                                  media_packet->GetData(), audio_extra_data_)) {
+        logte("Failed to change bitstream format");
+        return false;
+      }
+      auto dts_us = sny::convertTimescale(media_packet->GetDts(),
+                                          sny::kTimescaleMillisecond,
+                                          sny::kTimescaleMicrosecond);
+      auto pts_us = sny::convertTimescale(media_packet->GetPts(),
+                                          sny::kTimescaleMillisecond,
+                                          sny::kTimescaleMicrosecond);
+      auto duration_us = sny::convertTimescale(media_packet->GetDuration(),
+                                               sny::kTimescaleMillisecond,
+                                               sny::kTimescaleMicrosecond);
+      auto audio_media_sample = std::make_shared<sny::SnyMediaSample>(sny::kMediaTypeAudio,
+                                                                      dts_us,
+                                                                      pts_us,
+                                                                      duration_us);
+      audio_media_sample->setKey(false);  // TODO:
+      audio_media_sample->setData(
+          (const char *)media_packet->GetData()->GetData(),
+          media_packet->GetDataLength());
+      SendFrame(audio_media_sample);
+    }
+    return true;
+  }
+
+bool RtmpStream::SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample) {
+  if (ts_muxer_ == nullptr) {
+    ts_muxer_ = createTsMuxer();
+  }
+  if (media_sample->type() == sny::kMediaTypeVideo) {
+    AP4_Sample ap4Sample;
+    ap4Sample.SetDts(media_sample->dts());
+    ap4Sample.SetCts(media_sample->pts());
+    ap4Sample.SetSync(media_sample->isKey());
+    AP4_DataBuffer sample_data(media_sample->data(), media_sample->size());
+    video_stream_->WriteSample(ap4Sample, sample_data, nullptr, true, *fileByteStream_);
+  } else if (media_sample->type() == sny::kMediaTypeAudio) {
+    AP4_Sample ap4Sample;
+    ap4Sample.SetDts(media_sample->dts());
+    ap4Sample.SetCts(media_sample->pts());
+    ap4Sample.SetSync(media_sample->isKey());
+    AP4_DataBuffer sample_data(media_sample->data(), media_sample->size());
+    audio_stream_->WriteSample(ap4Sample, sample_data, nullptr, true,
+                               *fileByteStream_);
+  } else {
+    //TODO:
+  }
+  return true;
 }
+  }
