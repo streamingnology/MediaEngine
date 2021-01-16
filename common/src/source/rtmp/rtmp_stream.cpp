@@ -1148,9 +1148,9 @@ bool RtmpStream::CheckSignedPolicy()
 		{
 			_media_info->audio_stream_coming = true;
 
-			if(CheckReadyToPublish() == true)
+			if(CheckReadyToPublish())
 			{
-				if(PublishStream() == false)
+				if(!PublishStream())
 				{
 					logte("Input create fail -  stream(%s/%s)", _vhost_app_name.CStr(), _stream_name.CStr());
 					return false;
@@ -1179,7 +1179,8 @@ bool RtmpStream::CheckSignedPolicy()
 		{
 			// Parsing FLV
 			FlvAudioData flv_audio;
-			if(FlvAudioData::Parse(message->payload->GetDataAs<uint8_t>(), message->payload->GetLength(), flv_audio) == false)
+			if(!FlvAudioData::Parse(message->payload->GetDataAs<uint8_t>(),
+                               message->payload->GetLength(), flv_audio))
 			{
 				logte("Could not parse flv audio (%s/%s)", _vhost_app_name.CStr(), GetName().CStr());
 				return false;
