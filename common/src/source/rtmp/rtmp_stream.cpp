@@ -1060,14 +1060,20 @@ bool RtmpStream::CheckSignedPolicy()
 				return true;
 			}
 
+      MediaPacketFlag media_packet_flag = MediaPacketFlag::NoFlag;
+      if (flv_video.FrameType() == FlvVideoFrameTypes::KEY_FRAME) {
+        media_packet_flag = MediaPacketFlag::Key;
+      }
 			auto data = std::make_shared<ov::Data>(flv_video.Payload(), flv_video.PayloadLength());
 			auto video_frame = std::make_shared<MediaPacket>(cmn::MediaType::Video,
-											  RTMP_VIDEO_TRACK_ID,
-											  data,
-											  pts,
-											  dts, 
-											  cmn::BitstreamFormat::H264_AVCC, // RTMP's packet type is AVCC 
-											 packet_type);
+                                                       RTMP_VIDEO_TRACK_ID,
+                                                       data,
+                                                       pts,
+                                                       dts,
+                                                       0,
+                                                       media_packet_flag,
+                                                       cmn::BitstreamFormat::H264_AVCC, // RTMP's packet type is AVCC
+                                                       packet_type);
 
 			ConvertToSnyMediaSample(video_frame);
 
@@ -1208,13 +1214,14 @@ bool RtmpStream::CheckSignedPolicy()
 
 			auto data = std::make_shared<ov::Data>(flv_audio.Payload(), flv_audio.PayloadLength());
 			auto audio_frame = std::make_shared<MediaPacket>(cmn::MediaType::Audio,
-											  RTMP_AUDIO_TRACK_ID,
-											  data,
-											  pts,
-											  dts,
-											  cmn::BitstreamFormat::AAC_LATM,
-											  packet_type);
-
+                                                       RTMP_AUDIO_TRACK_ID,
+                                                       data,
+                                                       pts,
+                                                       dts,
+                                                       0,
+                                                       MediaPacketFlag::Key,
+                                                       cmn::BitstreamFormat::AAC_LATM,
+                                                       packet_type);
 			ConvertToSnyMediaSample(audio_frame);
 
 			_last_audio_timestamp = message->header->completed.timestamp;
