@@ -2,9 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYTHREADS_H
-#define STREAMINGNOLOGY_CORE_SNYTHREADS_H
-
+#pragma once
 #include <condition_variable>
 #include <map>
 #include <mutex>
@@ -184,4 +182,3 @@ void Threads<ThreadHandler>::waitAll() {
   }
 }
 }  // namespace sny
-#endif  // !STREAMINGNOLOGY_CORE_SNYTHREADS_H

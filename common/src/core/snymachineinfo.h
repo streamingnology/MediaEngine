@@ -2,8 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYMACHINEINFO_H
-#define STREAMINGNOLOGY_CORE_SNYMACHINEINFO_H
+#pragma once
 #include <string>
 #include <vector>
 #include "core/snydatabuffer.h"
@@ -41,5 +40,3 @@ class SnyMachineInfo {
 };
 
 }  // namespace sny
-
-#endif  // !STREAMINGNOLOGY_CORE_SNYMACHINEINFO_H

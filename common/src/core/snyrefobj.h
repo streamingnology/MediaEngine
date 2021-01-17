@@ -2,9 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYREFOBJ_H
-#define STREAMINGNOLOGY_CORE_SNYREFOBJ_H
-
+#pragma once
 #include <atomic>
 namespace sny {
 class SnyRefObj {
@@ -28,5 +26,3 @@ class SnyRefObj {
   static std::atomic<int> global_ref_count_;
 };
 }  // namespace sny
-
-#endif  // !STREAMINGNOLOGY_CORE_SNYREFOBJ_H

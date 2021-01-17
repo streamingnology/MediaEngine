@@ -2,8 +2,7 @@
  *copyleft (c) 2021 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYDEMUXERHELPER_H
-#define STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYDEMUXERHELPER_H
+#pragma once
 #include "core/snytype.h"
 #include "media/snymediasample.h"
 #include "core/snyresults.h"
@@ -72,4 +71,3 @@ class FragmentedSampleReader : public SampleReader {
   AP4_LinearReader& fragment_reader_;
 };
 }
-#endif  // STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYDEMUXERHELPER_H

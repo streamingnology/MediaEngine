@@ -2,9 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYPLATFORM_H
-#define STREAMINGNOLOGY_CORE_SNYPLATFORM_H
-
+#pragma once
 /*
    The operating system, must be one of: (Q_OS_x)
 
@@ -122,5 +120,3 @@
 #else
 #error "Qt has not been ported to this OS - talk to qt-bugs@trolltech.com"
 #endif
-
-#endif  // !STREAMINGNOLOGY_CORE_SNYPLATFORM_H

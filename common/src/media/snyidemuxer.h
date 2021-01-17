@@ -2,8 +2,7 @@
  *copyleft (c) 2021 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYIDEMUXER_H
-#define STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYIDEMUXER_H
+#pragma once
 #include "core/snytype.h"
 #include "media/snymediasample.h"
 #include "media/snymediatype.h"
@@ -23,6 +22,3 @@ class SnyIDemuxer{
 };
 
 }
-
-
-#endif  // STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYIDEMUXER_H

@@ -2,8 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYDATABUFFER_H
-#define STREAMINGNOLOGY_CORE_SNYDATABUFFER_H
+#pragma once
 #include "core/snyrefobj.h"
 namespace sny {
 
@@ -53,4 +52,3 @@ class SnyDataBuffer {
 };
 
 }  // namespace sny
-#endif  // _STREAMINGNOLOGY_CORE_DATABUFFER_H_

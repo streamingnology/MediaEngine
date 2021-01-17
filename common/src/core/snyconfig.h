@@ -2,8 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYCONFIG_H
-#define STREAMINGNOLOGY_CORE_SNYCONFIG_H
+#pragma once
 #include <stdio.h>
 #include "core/snyplatform.h"
 
@@ -86,5 +85,3 @@
 #if !defined(SNY_vsnprintf)
 #define SNY_vsnprintf vsnprintf
 #endif
-
-#endif  // !STREAMINGNOLOGY_CORE_SNYCONFIG_H

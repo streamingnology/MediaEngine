@@ -2,8 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYTYPE_H
-#define STREAMINGNOLOGY_CORE_SNYTYPE_H
+#pragma once
 #include <cinttypes>
 namespace sny {
 typedef int SnyInt;
@@ -19,5 +18,3 @@ typedef unsigned char SnyUI08;
 
 #define SnySI64_MAX INT64_MAX
 }  // namespace sny
-
-#endif  // !STREAMINGNOLOGY_CORE_SNYTYPE_H

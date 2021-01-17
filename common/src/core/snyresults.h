@@ -2,8 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYRESULTS_H
-#define STREAMINGNOLOGY_CORE_SNYRESULTS_H
+#pragma once
 #include "core/snytype.h"
 
 namespace sny {
@@ -15,5 +14,3 @@ const char* SnyResult2Text(SnyInt result);
 #define SNYFAILED(result) ((result) != SnySuccess)
 #define SNYSUCCEEDED(result) ((result) == SnySuccess)
 }  // namespace sny
-
-#endif  // !STREAMINGNOLOGY_CORE_SNYRESULTS_H

@@ -2,9 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYIEVENTCALLBACK_H
-#define STREAMINGNOLOGY_CORE_SNYIEVENTCALLBACK_H
-
+#pragma once
 namespace sny {
 class SnyIEventCallback {
  public:
@@ -16,4 +14,3 @@ class SnyIEventCallback {
 };
 }  // namespace sny
 
-#endif  // !STREAMINGNOLOGY_CORE_SNYIEVENTCALLBACK_H

@@ -2,8 +2,7 @@
  *copyleft (c) 2021 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYDEMUXER_H
-#define STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYDEMUXER_H
+#pragma once
 #include "snyidemuxer.h"
 #include "media/snydemuxerhelper.h"
 #include "media/snymediainfo.h"
@@ -37,4 +36,3 @@ class SnyDemuxer : public SnyIDemuxer {
   SnyMediaInfo media_info_;
 };
 }  // namespace sny
-#endif  // STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYDEMUXER_H

@@ -2,9 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYMEDIASAMPLE_H
-#define STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYMEDIASAMPLE_H
-
+#pragma once
 #include "core/snyconstants.h"
 #include "core/snydatabuffer.h"
 #include "core/snytype.h"
@@ -65,5 +63,3 @@ class SnyMediaSample {
   SnyBool key_frame_;
 };
 }  // namespace sny
-
-#endif  // !STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYMEDIASAMPLE_H

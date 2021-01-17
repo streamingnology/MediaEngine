@@ -2,8 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYCONSTANTS_H
-#define STREAMINGNOLOGY_CORE_SNYCONSTANTS_H
+#pragma once
 #include <string>
 #include "core/snytype.h"
 namespace sny {
@@ -75,4 +74,3 @@ enum SnyServiceType {
 };
 
 }  // namespace sny
-#endif  // !STREAMINGNOLOGY_CORE_SNYCONSTANTS_H

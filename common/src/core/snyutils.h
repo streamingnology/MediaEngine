@@ -2,8 +2,7 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#ifndef STREAMINGNOLOGY_CORE_SNYUTILS_H
-#define STREAMINGNOLOGY_CORE_SNYUTILS_H
+#pragma once
 #include <map>
 #include <string>
 #include <vector>
@@ -25,5 +24,3 @@ namespace SnyUtils {
   SnyFileDir isFileorDir(std::string& path);
 }  // namespace SnyUtils
 }  // namespace sny
-
-#endif  // !STREAMINGNOLOGY_CORE_SNYUTILS_H
