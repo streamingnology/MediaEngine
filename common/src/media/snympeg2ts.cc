@@ -4,6 +4,7 @@
  */
 #include "media/snympeg2ts.h"
 #include "media/snyaudiofunction.h"
+#include "core/snyconstants.h"
 #include <Ap4AvcParser.h>
 #include <Ap4ByteStream.h>
 #include <Ap4Sample.h>
@@ -237,7 +238,7 @@ class AP4_Mpeg2TsAudioSampleStream : public SnyMpeg2TsWriter::SampleStream {
                            SnyMpeg2TsWriter::SampleStream*& stream,
                            const AP4_UI08* descriptor,
                            AP4_Size descriptor_length);
-  AP4_Result WriteSample(AP4_Sample& sample, AP4_DataBuffer& sample_data,
+  AP4_Result WriteSample(std::shared_ptr<SnyMediaSample> sample,
                          AP4_SampleDescription* sample_description,
                          bool with_pcr, AP4_ByteStream& output);
 
@@ -260,11 +261,11 @@ AP4_Result AP4_Mpeg2TsAudioSampleStream::Create(
 }
 
 AP4_Result AP4_Mpeg2TsAudioSampleStream::WriteSample(
-    AP4_Sample& sample, AP4_DataBuffer& sample_data,
+    std::shared_ptr<SnyMediaSample> sample,
     AP4_SampleDescription* sample_description, bool with_pcr,
     AP4_ByteStream& output) {
-  AP4_UI64 ts = AP4_ConvertTime(sample.GetDts(), m_TimeScale, 90000);
-  WritePES(sample_data.GetData(), sample_data.GetDataSize(), ts, false, ts,
+  AP4_UI64 ts = AP4_ConvertTime(sample->dts(), m_TimeScale, 90000);
+  WritePES((const unsigned char*)sample->data(), sample->size(), ts, false, ts,
            with_pcr, output);
   return AP4_SUCCESS;
 }
@@ -276,7 +277,7 @@ class AP4_Mpeg2TsVideoSampleStream : public SnyMpeg2TsWriter::SampleStream {
                            SnyMpeg2TsWriter::SampleStream*& stream,
                            const AP4_UI08* descriptor,
                            AP4_Size descriptor_length);
-  AP4_Result WriteSample(AP4_Sample& sample, AP4_DataBuffer& sample_data,
+  AP4_Result WriteSample(std::shared_ptr<SnyMediaSample> sample,
                          AP4_SampleDescription* sample_description,
                          bool with_pcr, AP4_ByteStream& output);
 
@@ -308,12 +309,12 @@ AP4_Result AP4_Mpeg2TsVideoSampleStream::Create(
 }
 
 AP4_Result AP4_Mpeg2TsVideoSampleStream::WriteSample(
-    AP4_Sample& sample, AP4_DataBuffer& sample_data,
+    std::shared_ptr<SnyMediaSample> sample,
     AP4_SampleDescription* sample_description, bool with_pcr,
     AP4_ByteStream& output) {
   // compute the timestamp
-  AP4_UI64 dts = AP4_ConvertTime(sample.GetDts(), m_TimeScale, 90000);
-  AP4_UI64 pts = AP4_ConvertTime(sample.GetCts(), m_TimeScale, 90000);
+  AP4_UI64 dts = AP4_ConvertTime(sample->dts(), m_TimeScale, 90000);
+  AP4_UI64 pts = AP4_ConvertTime(sample->pts(), m_TimeScale, 90000);
 
   // update counters
   ++m_SamplesWritten;
@@ -327,16 +328,19 @@ AP4_Result AP4_Mpeg2TsVideoSampleStream::WriteSample(
   delimiter[5] = 0xF0;  // Slice types = ANY
   AP4_DataBuffer buffer;
   buffer.AppendData(delimiter, sizeof(delimiter));
-  buffer.AppendData(sample_data.GetData(), sample_data.GetDataSize());
+  buffer.AppendData((const AP4_Byte*)sample->data(), sample->size());
   // write the packet
   return WritePES(buffer.GetData(), buffer.GetDataSize(), dts, true, pts,
                   with_pcr, output);
 }
 
-SnyMpeg2TsWriter::SnyMpeg2TsWriter(AP4_UI16 pmt_pid)
+SnyMpeg2TsWriter::SnyMpeg2TsWriter(OutPutType type, AP4_UI16 pmt_pid)
     : ptr_audio_sample_stream_(nullptr), ptr_video_sample_stream_(nullptr) {
+  this->out_put_type_ = type;
   ptr_pat_stream_ = new Stream(0);
   ptr_pmt_stream_ = new Stream(pmt_pid);
+  this->audio_enabled_ = false;
+  this->video_enabled_ = false;
 }
 
 SnyMpeg2TsWriter::~SnyMpeg2TsWriter() {
@@ -344,11 +348,12 @@ SnyMpeg2TsWriter::~SnyMpeg2TsWriter() {
   delete ptr_pmt_stream_;
   delete ptr_audio_sample_stream_;
   delete ptr_video_sample_stream_;
+  output_->Release();
 }
 
-AP4_Result SnyMpeg2TsWriter::WritePAT(AP4_ByteStream& output) {
+AP4_Result SnyMpeg2TsWriter::WritePAT() {
   unsigned int payload_size = AP4_MPEG2TS_PACKET_PAYLOAD_SIZE;
-  ptr_pat_stream_->WritePacketHeader(true, payload_size, false, 0, output);
+  ptr_pat_stream_->WritePacketHeader(true, payload_size, false, 0, *output_);
 
   AP4_BitWriter writer(1024);
 
@@ -369,14 +374,12 @@ AP4_Result SnyMpeg2TsWriter::WritePAT(AP4_ByteStream& output) {
   writer.Write(ptr_pmt_stream_->GetPID(), 13);  // program_map_PID
   writer.Write(ComputeCRC(writer.GetData() + 1, 17 - 1 - 4), 32);
 
-  output.Write(writer.GetData(), 17);
-
-  output.Write(StuffingBytes, AP4_MPEG2TS_PACKET_PAYLOAD_SIZE - 17);
-
+  output_->Write(writer.GetData(), 17);
+  output_->Write(StuffingBytes, AP4_MPEG2TS_PACKET_PAYLOAD_SIZE - 17);
   return AP4_SUCCESS;
 }
 
-AP4_Result SnyMpeg2TsWriter::WritePMT(AP4_ByteStream& output) {
+AP4_Result SnyMpeg2TsWriter::WritePMT() {
   // check that we have at least one media stream
   if (ptr_audio_sample_stream_ == nullptr &&
       ptr_video_sample_stream_ == nullptr) {
@@ -384,7 +387,7 @@ AP4_Result SnyMpeg2TsWriter::WritePMT(AP4_ByteStream& output) {
   }
 
   unsigned int payload_size = AP4_MPEG2TS_PACKET_PAYLOAD_SIZE;
-  ptr_pmt_stream_->WritePacketHeader(true, payload_size, false, 0, output);
+  ptr_pmt_stream_->WritePacketHeader(true, payload_size, false, 0, *output_);
 
   AP4_BitWriter writer(1024);
 
@@ -446,8 +449,8 @@ AP4_Result SnyMpeg2TsWriter::WritePMT(AP4_ByteStream& output) {
   writer.Write(ComputeCRC(writer.GetData() + 1, section_length - 1),
                32);  // CRC
 
-  output.Write(writer.GetData(), section_length + 4);
-  output.Write(StuffingBytes,
+  output_->Write(writer.GetData(), section_length + 4);
+  output_->Write(StuffingBytes,
                AP4_MPEG2TS_PACKET_PAYLOAD_SIZE - (section_length + 4));
 
   return AP4_SUCCESS;
@@ -456,34 +459,39 @@ AP4_Result SnyMpeg2TsWriter::WritePMT(AP4_ByteStream& output) {
 AP4_Result SnyMpeg2TsWriter::SetAudioStream(AP4_UI32 timescale,
                                             AP4_UI08 stream_type,
                                             AP4_UI16 stream_id,
-                                            SampleStream*& stream, AP4_UI16 pid,
+                                            AP4_UI16 pid,
                                             const AP4_UI08* descriptor,
                                             AP4_Size descriptor_length) {
-  // default
-  stream = nullptr;
-
   AP4_Result result = AP4_Mpeg2TsAudioSampleStream::Create(
       pid, timescale, stream_type, stream_id, ptr_audio_sample_stream_,
       descriptor, descriptor_length);
   if (AP4_FAILED(result)) return result;
-  stream = ptr_audio_sample_stream_;
   return AP4_SUCCESS;
 }
 
 AP4_Result SnyMpeg2TsWriter::SetVideoStream(AP4_UI32 timescale,
                                             AP4_UI08 stream_type,
                                             AP4_UI16 stream_id,
-                                            SampleStream*& stream, AP4_UI16 pid,
+                                            AP4_UI16 pid,
                                             const AP4_UI08* descriptor,
                                             AP4_Size descriptor_length) {
-  // default
-  stream = nullptr;
-
   AP4_Result result = AP4_Mpeg2TsVideoSampleStream::Create(
       pid, timescale, stream_type, stream_id, ptr_video_sample_stream_,
       descriptor, descriptor_length);
   if (AP4_FAILED(result)) return result;
-  stream = ptr_video_sample_stream_;
+  return AP4_SUCCESS;
+}
+
+AP4_Result SnyMpeg2TsWriter::CreateByteStream() {
+  AP4_ByteStream* byte_stream = nullptr;
+  if (out_put_type_ == kMemory) {
+    byte_stream = new AP4_MemoryByteStream();
+  } else {
+    AP4_Result result = AP4_FileByteStream::Create(file_name_.c_str(), AP4_FileByteStream::STREAM_MODE_WRITE,
+                                        byte_stream);
+    if (AP4_FAILED(result)) return result;
+  }
+  output_ = byte_stream;
   return AP4_SUCCESS;
 }
 
@@ -495,19 +503,39 @@ void SnyMpeg2TsWriter::WriteMPEG2PacketCCTO16(AP4_ByteStream& output) {
     ptr_audio_sample_stream_->WriteMPEG2PacketCCTO16(output);
   }
   while (ptr_pat_stream_->GetCC() != 0x0) {
-    WritePAT(output);
+    WritePAT();
   }
   while (ptr_pmt_stream_->GetCC() != 0x0) {
-    WritePMT(output);
+    WritePMT();
   }
 }
 
-AP4_Result SnyMpeg2TsWriter::SampleStream::WriteSample(
-    AP4_Sample& sample, AP4_SampleDescription* sample_description,
-    bool with_pcr, AP4_ByteStream& output) {
-  AP4_DataBuffer sample_data;
-  AP4_Result result = sample.ReadData(sample_data);
-  if (AP4_FAILED(result)) return result;
-  return WriteSample(sample, sample_data, sample_description, with_pcr, output);
+void SnyMpeg2TsWriter::writeSample(std::shared_ptr<SnyMediaSample> sample) {
+  if (kMediaTypeAudio == sample->type() && ptr_audio_sample_stream_) {
+    ptr_audio_sample_stream_->WriteSample(sample, nullptr, true, *output_);
+  } else if (kMediaTypeVideo == sample->type() && ptr_video_sample_stream_) {
+    ptr_video_sample_stream_->WriteSample(sample, nullptr, true, *output_);
+  } else {
+    //TODO:
+  }
+}
+
+bool SnyMpeg2TsWriter::init() {
+  AP4_Result result;
+
+  result = SetAudioStream(sny::kTimescaleMicrosecond, AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7, AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO,
+                 AP4_MPEG2_TS_DEFAULT_PID_AUDIO, nullptr, 0);
+  if (AP4_FAILED(result)) return false;
+
+  result = SetVideoStream(sny::kTimescaleMicrosecond, AP4_MPEG2_STREAM_TYPE_AVC, AP4_MPEG2_TS_DEFAULT_STREAM_ID_VIDEO,
+                          AP4_MPEG2_TS_DEFAULT_PID_VIDEO, nullptr, 0);
+  if (AP4_FAILED(result)) return false;
+
+  result = CreateByteStream();
+  if (AP4_FAILED(result)) return false;
+
+  WritePAT();
+  WritePMT();
+  return true;
 }
 }  // namespace sny

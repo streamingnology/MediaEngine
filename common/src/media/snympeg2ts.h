@@ -3,10 +3,13 @@
  *code released under GPL license
  *This file is from Bento4
  */
-#ifndef STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYMPEG2TS_H
-#define STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYMPEG2TS_H
+#pragma once
+#include <Ap4.h>
+#include <memory>
+#include <string>
 #include "Ap4DataBuffer.h"
 #include "Ap4Types.h"
+#include "media/snymediasample.h"
 class AP4_ByteStream;
 class AP4_Sample;
 class AP4_SampleDescription;
@@ -34,6 +37,10 @@ const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ATSC_EAC3 = 0x81;
  */
 class SnyMpeg2TsWriter {
  public:
+  enum OutPutType {
+    kHardDrive = 0,
+    kMemory    = 1,
+  };
   class Stream {
    public:
     Stream(AP4_UI16 pid) : m_PID(pid), m_ContinuityCounter(0) {}
@@ -69,14 +76,9 @@ class SnyMpeg2TsWriter {
                                 bool with_dts, AP4_UI64 pts, bool with_pcr,
                                 AP4_ByteStream& output);
 
-    virtual AP4_Result WriteSample(AP4_Sample& sample,
-                                   AP4_DataBuffer& sample_data,
+    virtual AP4_Result WriteSample(std::shared_ptr<SnyMediaSample> sample,
                                    AP4_SampleDescription* sample_description,
                                    bool with_pcr, AP4_ByteStream& output) = 0;
-
-    AP4_Result WriteSample(AP4_Sample& sample,
-                           AP4_SampleDescription* sample_description,
-                           bool with_pcr, AP4_ByteStream& output);
 
     void SetType(AP4_UI08 type) { m_StreamType = type; }
     void SetDescriptor(const AP4_UI08* descriptor, AP4_Size descriptor_length) {
@@ -91,31 +93,58 @@ class SnyMpeg2TsWriter {
     AP4_DataBuffer m_Descriptor;
   };
 
-  SnyMpeg2TsWriter(AP4_UI16 pmt_pid = AP4_MPEG2_TS_DEFAULT_PID_PMT);
+  SnyMpeg2TsWriter(OutPutType type = kMemory, AP4_UI16 pmt_pid = AP4_MPEG2_TS_DEFAULT_PID_PMT);
   ~SnyMpeg2TsWriter();
 
   Stream* GetPAT() { return ptr_pat_stream_; }
   Stream* GetPMT() { return ptr_pmt_stream_; }
-  AP4_Result WritePAT(AP4_ByteStream& output);
-  AP4_Result WritePMT(AP4_ByteStream& output);
+  AP4_Result WritePAT();
+  AP4_Result WritePMT();
+
+  void WriteMPEG2PacketCCTO16(AP4_ByteStream& output);
+
+  void setFileName(std::string file_name) {
+    this->file_name_ = file_name;
+  }
+  std::string getFileName() {
+    return this->file_name_;
+  }
+
+  void setOutputType(OutPutType type) {
+    this->out_put_type_ = type;
+  }
+  OutPutType getOutputType() {
+    return this->out_put_type_;
+  }
+
+  void setEnableAudio(bool enabled) { this->audio_enabled_ = enabled; }
+  void setEnableVideo(bool enabled) { this->video_enabled_ = enabled; }
+
+  void writeSample(std::shared_ptr<SnyMediaSample> sample);
+
+  bool init();
+
+ private:
   AP4_Result SetAudioStream(AP4_UI32 timescale, AP4_UI08 stream_type,
-                            AP4_UI16 stream_id, SampleStream*& stream,
+                            AP4_UI16 stream_id,
                             AP4_UI16 pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO,
                             const AP4_UI08* descriptor = nullptr,
                             AP4_Size descriptor_length = 0);
   AP4_Result SetVideoStream(AP4_UI32 timescale, AP4_UI08 stream_type,
-                            AP4_UI16 stream_id, SampleStream*& stream,
+                            AP4_UI16 stream_id,
                             AP4_UI16 pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO,
                             const AP4_UI08* descriptor = nullptr,
                             AP4_Size descriptor_length = 0);
-  void WriteMPEG2PacketCCTO16(AP4_ByteStream& output);
-
+  AP4_Result CreateByteStream();
  private:
+  OutPutType out_put_type_;
   Stream* ptr_pat_stream_;
   Stream* ptr_pmt_stream_;
   SampleStream* ptr_audio_sample_stream_;
   SampleStream* ptr_video_sample_stream_;
+  AP4_ByteStream* output_;
+  std::string file_name_;
+  bool video_enabled_;
+  bool audio_enabled_;
 };
 }  // namespace sny
-
-#endif  // !STREAMINGNOLOGY_COMMON_SRC_MEDIA_SNYMPEG2TS_H

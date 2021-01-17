@@ -9,6 +9,8 @@
 
 #pragma once
 #include <iostream>
+#include <chrono>
+#include <string>
 #include "media/common_types.h"
 #include "media/media_track.h"
 #include "core/url.h"
@@ -20,6 +22,7 @@
 #include <media/bitstream/aac/aac_latm_to_adts.h>
 #include <media/snymediasample.h>
 #include <media/snympeg2ts.h>
+#include <iomanip>
 #include <memory>
 #include <uv11.hpp>
 #include "core/event.h"
@@ -150,45 +153,30 @@ namespace pvd
     std::shared_ptr<uv::TcpConnection> conn_ = nullptr;
     std::map<int32_t, std::shared_ptr<MediaTrack>> _tracks;
 
-    sny::SnyMpeg2TsWriter* createTsMuxer() {
-      static unsigned int pmt_pid           = sny::AP4_MPEG2_TS_DEFAULT_PID_PMT;
-      static unsigned int video_pid         = sny::AP4_MPEG2_TS_DEFAULT_PID_VIDEO;
-      static unsigned int audio_pid         = sny::AP4_MPEG2_TS_DEFAULT_PID_AUDIO;
-      static unsigned int audio_stream_type = sny::AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
-      static unsigned int audio_stream_id   = sny::AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO;
-      static unsigned int video_stream_type = sny::AP4_MPEG2_STREAM_TYPE_AVC;
-      static unsigned int video_stream_id   = sny::AP4_MPEG2_TS_DEFAULT_STREAM_ID_VIDEO;
-
-      auto mpeg2Writer         = new sny::SnyMpeg2TsWriter(pmt_pid);
-
-      AP4_Result result;
-      std::string filename = "/Users/developer/Desktop/tmp/rtmp.ts";
-      result = AP4_FileByteStream::Create(filename.c_str(), AP4_FileByteStream::STREAM_MODE_WRITE,
-                                          fileByteStream_);
-      if (AP4_FAILED(result)) {
-        fprintf(stderr, "ERROR: cannot open output (%d)\n", result);
-        return nullptr;
+    std::shared_ptr<sny::SnyMpeg2TsWriter> createTsMuxer() {
+      auto muxer = std::make_shared<sny::SnyMpeg2TsWriter>();
+      auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+      std::string n = std::ctime(&now);
+      n.pop_back();
+      std::string stream_name = _stream_name.CStr();
+      std::string file_name = "/Users/developer/Desktop/tmp/" + n + "_" + stream_name + ".ts";
+      muxer->setFileName(file_name);
+      muxer->setOutputType(sny::SnyMpeg2TsWriter::kHardDrive);
+      for (auto item : _tracks) {
+        if (item.second->GetMediaType() == cmn::MediaType::Video) {
+          muxer->setEnableVideo(true);
+        }
+        if (item.second->GetMediaType() == cmn::MediaType::Audio) {
+          muxer->setEnableAudio(true);
+        }
       }
-
-      result = mpeg2Writer->SetAudioStream(sny::kTimescaleMicrosecond, audio_stream_type, audio_stream_id,
-                                           audio_stream_, audio_pid, nullptr, 0);
-      if (AP4_FAILED(result)) {
-        return nullptr;
+      if (muxer->init()) {
+        return muxer;
       }
-      result = mpeg2Writer->SetVideoStream(sny::kTimescaleMicrosecond, video_stream_type, video_stream_id,
-                                           video_stream_, video_pid, nullptr, 0);
-      if (AP4_FAILED(result)) {
-        return nullptr;
-      }
-      mpeg2Writer->WritePAT(*fileByteStream_);
-      mpeg2Writer->WritePMT(*fileByteStream_);
-      return mpeg2Writer;
+      return nullptr;
     }
 
-    sny::SnyMpeg2TsWriter* ts_muxer_ = nullptr;
-    AP4_ByteStream* fileByteStream_ = nullptr;
-    sny::SnyMpeg2TsWriter::SampleStream* audio_stream_ = nullptr;
-    sny::SnyMpeg2TsWriter::SampleStream* video_stream_ = nullptr;
+    std::shared_ptr<sny::SnyMpeg2TsWriter> ts_muxer_ = nullptr;
 
 		// Received data buffer
 		std::shared_ptr<ov::Data> 	_remained_data = nullptr;

@@ -1335,9 +1335,7 @@ bool RtmpStream::CheckSignedPolicy()
 		{
 			int to_send = std::min(remained, (int)(1024L * 1024L));
 			//int sent = _remote->Send(data_to_send, to_send);
-      int sent = conn_->write((const char *)data_to_send, to_send, [](uv::WriteInfo& inf){
-        std::cout<<inf.status<<std::endl;
-      });
+      int sent = conn_->write((const char *)data_to_send, to_send, nullptr);
       sent = to_send;
 			if (sent != to_send)
 			{
@@ -1754,24 +1752,7 @@ bool RtmpStream::SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample) {
   if (ts_muxer_ == nullptr) {
     ts_muxer_ = createTsMuxer();
   }
-  if (media_sample->type() == sny::kMediaTypeVideo) {
-    AP4_Sample ap4Sample;
-    ap4Sample.SetDts(media_sample->dts());
-    ap4Sample.SetCts(media_sample->pts());
-    ap4Sample.SetSync(media_sample->isKey());
-    AP4_DataBuffer sample_data(media_sample->data(), media_sample->size());
-    video_stream_->WriteSample(ap4Sample, sample_data, nullptr, true, *fileByteStream_);
-  } else if (media_sample->type() == sny::kMediaTypeAudio) {
-    AP4_Sample ap4Sample;
-    ap4Sample.SetDts(media_sample->dts());
-    ap4Sample.SetCts(media_sample->pts());
-    ap4Sample.SetSync(media_sample->isKey());
-    AP4_DataBuffer sample_data(media_sample->data(), media_sample->size());
-    audio_stream_->WriteSample(ap4Sample, sample_data, nullptr, true,
-                               *fileByteStream_);
-  } else {
-    //TODO:
-  }
+  ts_muxer_->writeSample(media_sample);
   return true;
 }
   }
