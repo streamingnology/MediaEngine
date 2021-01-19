@@ -14,6 +14,7 @@ int main(int argc, char** args)
 
   std::atomic<uint64_t> dataSize(0);
   uv::TcpServer server(loop);
+  server.setTimeout(60);
   server.setMessageCallback([&streams, &mutex](uv::TcpConnectionPtr ptr,const char* data_buff, ssize_t data_size)
                             {
                               mutex.lock();
