@@ -107,6 +107,127 @@ build_uvcpp(){
   echo "build uvcpp end"
 }
 
+PREFIX=$build_path/ffmpeg
+TEMP_PATH=$source_path/ffmpeg
+
+OPUS_VERSION=1.1.3
+X264_VERSION=20190513-2245-stable
+X265_VERSION=3.2.1
+VPX_VERSION=1.7.0
+FDKAAC_VERSION=0.1.5
+FFMPEG_VERSION=3.4
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    NCPU=$(sysctl -n hw.ncpu)
+    OSNAME=$(sw_vers -productName)
+    OSVERSION=$(sw_vers -productVersion)
+else
+    NCPU=$(nproc)
+
+    # CentOS, Fedora
+    if [ -f /etc/redhat-release ]; then
+        OSNAME=$(cat /etc/redhat-release |awk '{print $1}')
+        OSVERSION=$(cat /etc/redhat-release |sed s/.*release\ // |sed s/\ .*// | cut -d"." -f1)
+    # Ubuntu
+    elif [ -f /etc/os-release ]; then
+        OSNAME=$(cat /etc/os-release | grep "^NAME" | tr -d "\"" | cut -d"=" -f2)
+        OSVERSION=$(cat /etc/os-release | grep ^VERSION= | tr -d "\"" | cut -d"=" -f2 | cut -d"." -f1 | awk '{print  $1}')
+    fi
+fi
+MAKEFLAGS="${MAKEFLAGS} -j${NCPU}"
+CURRENT=$(pwd)
+
+fail_exit()
+{
+    echo "($1) installation has failed."
+    cd
+    exit 1
+}
+
+install_libopus()
+{
+    (DIR=${TEMP_PATH}/opus && \
+    mkdir -p ${DIR} && \
+    cd ${DIR} && \
+    curl -sLf https://archive.mozilla.org/pub/opus/opus-${OPUS_VERSION}.tar.gz | tar -xz --strip-components=1 && \
+    autoreconf -fiv && \
+    ./configure --prefix="${PREFIX}" --enable-shared --disable-static && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf ${PREFIX}/share && \
+    rm -rf ${DIR}) || fail_exit "opus"
+}
+
+install_libx264()
+{
+    (DIR=${TEMP_PATH}/x264 && \
+    mkdir -p ${DIR} && \
+    cd ${DIR} && \
+    curl -sLf https://download.videolan.org/pub/videolan/x264/snapshots/x264-snapshot-${X264_VERSION}.tar.bz2 | tar -jx --strip-components=1 && \
+  ./configure --prefix="${PREFIX}" --enable-shared --enable-pic --disable-cli && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf ${DIR}) || fail_exit "x264"
+}
+
+install_libx265()
+{
+    (DIR=${TEMP_PATH}/x265 && \
+    mkdir -p ${DIR} && \
+    cd ${DIR} && \
+    curl -sLf  https://get.videolan.org/x265/x265_${X265_VERSION}.tar.gz | tar -xz --strip-components=1 && \
+    cd ${DIR}/build/linux && \
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DENABLE_SHARED:bool=on ../../source && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf ${DIR}) || fail_exit "x265"
+}
+
+install_fdk_aac()
+{
+    (DIR=${TEMP_PATH}/aac && \
+    mkdir -p ${DIR} && \
+    cd ${DIR} && \
+    curl -sLf https://github.com/mstorsjo/fdk-aac/archive/v${FDKAAC_VERSION}.tar.gz | tar -xz --strip-components=1 && \
+    autoreconf -fiv && \
+    ./configure --prefix="${PREFIX}" --enable-shared --disable-static --datadir=/tmp/aac && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf ${DIR}) || fail_exit "fdk_aac"
+}
+
+install_ffmpeg()
+{
+    (DIR=${TEMP_PATH}/ffmpeg && \
+    mkdir -p ${DIR} && \
+    cd ${DIR} && \
+    curl -sLf https://github.com/AirenSoft/FFmpeg/archive/ome/${FFMPEG_VERSION}.tar.gz | tar -xz --strip-components=1 && \
+    PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH} ./configure \
+    --prefix="${PREFIX}" \
+    --enable-gpl \
+    --enable-nonfree \
+    --extra-cflags="-I${PREFIX}/include"  \
+    --extra-ldflags="-L${PREFIX}/lib -Wl,-rpath,${PREFIX}/lib" \
+    --extra-libs=-ldl \
+    --enable-shared \
+    --disable-static \
+    --disable-debug \
+    --disable-doc \
+    --disable-programs  \
+    --disable-avdevice --disable-dct --disable-dwt --disable-lsp --disable-lzo --disable-rdft --disable-faan --disable-pixelutils\
+    --enable-zlib --enable-libfdk_aac --enable-libx264 --enable-libx265 \
+    --disable-everything \
+    --enable-encoder=libopus,libfdk_aac,libx264,libx265,mjpeg,png \
+    --enable-decoder=aac,aac_latm,aac_fixed,h264,hevc \
+    --enable-parser=aac,aac_latm,aac_fixed,h264,hevc \
+    --enable-network --enable-protocol=tcp --enable-protocol=udp --enable-protocol=rtp,file,rtmp --enable-demuxer=rtsp --enable-muxer=mp4,webm,mpegts,flv,mpjpeg \
+    --enable-filter=asetnsamples,aresample,aformat,channelmap,channelsplit,scale,transpose,fps,settb,asettb,format # && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf ${PREFIX}/share && \
+    rm -rf ${DIR}) || fail_exit "ffmpeg"
+}
+
 main(){
   build_Bento4
   #build_gpac
@@ -116,6 +237,12 @@ main(){
   #build_jwtcpp
   build_libuv
   build_uvcpp
+
+  install_libopus
+  install_libx264
+  install_libx265
+  install_fdk_aac
+  install_ffmpeg
 }
 
 main
