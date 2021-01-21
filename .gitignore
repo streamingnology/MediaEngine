@@ -33,7 +33,7 @@
 
 #streamingnology
 .DS_Store
-common/3rd/git-submodule/*
+common/3rd/download
 common/build/
 common/cmake-build-debug
 build/
