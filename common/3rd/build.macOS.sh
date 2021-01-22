@@ -221,6 +221,7 @@ install_ffmpeg()
     --enable-decoder=aac,aac_latm,aac_fixed,h264,hevc \
     --enable-parser=aac,aac_latm,aac_fixed,h264,hevc \
     --enable-network --enable-protocol=tcp --enable-protocol=udp --enable-protocol=rtp,file,rtmp --enable-demuxer=rtsp --enable-muxer=mp4,webm,mpegts,flv,mpjpeg \
+    --enable-bsf=aac_adtstoasc,imx_dump_header,null,chomp,mjpeg2jpeg,remove_extradata,dca_core,mjpega_dump_header,text2movsub,dump_extradata,h264_mp4toannexb,mpeg4_unpack_bframes,vp9_superframe_split,hevc_mp4toannexb,noise\
     --enable-filter=asetnsamples,aresample,aformat,channelmap,channelsplit,scale,transpose,fps,settb,asettb,format # && \
     make -j$(nproc) && \
     make install && \
