@@ -41,3 +41,7 @@ build/
 application/MediaServer/.idea
 application/MediaServer/build
 application/MediaServer/cmake-build-debug
+
+application/RTMP-Proxy/.idea
+application/RTMP-Proxy/build
+application/RTMP-Proxy/cmake-build-debug
