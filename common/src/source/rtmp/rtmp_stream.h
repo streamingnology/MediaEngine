@@ -56,7 +56,7 @@ namespace pvd
     std::shared_ptr<MediaTrack> GetTrack(int32_t id);
 
 	protected:
-		bool ConvertToSnyMediaSample(std::shared_ptr<MediaPacket> media_packet);
+		bool ConvertToSnyMediaSample(std::shared_ptr<MediaTrack> &media_track, std::shared_ptr<MediaPacket> media_packet);
     bool SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample);
 	private:
 		// AMF Event
@@ -148,42 +148,15 @@ namespace pvd
       return published_;
     }
     bool published_;
-    std::vector<uint8_t> video_extra_data_;
-    std::vector<uint8_t> audio_extra_data_;
     std::shared_ptr<uv::TcpConnection> conn_ = nullptr;
     std::map<int32_t, std::shared_ptr<MediaTrack>> _tracks;
-
-    std::shared_ptr<sny::SnyMpeg2TsWriter> createTsMuxer() {
-      auto muxer = std::make_shared<sny::SnyMpeg2TsWriter>();
-      auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-      std::string n = std::ctime(&now);
-      n.pop_back();
-      std::string stream_name = _stream_name.CStr();
-      std::string file_name = "/Users/developer/Desktop/tmp/" + n + "_" + stream_name + ".ts";
-      muxer->setFileName(file_name);
-      muxer->setOutputType(sny::SnyMpeg2TsWriter::kHardDrive);
-      for (auto item : _tracks) {
-        if (item.second->GetMediaType() == cmn::MediaType::Video) {
-          muxer->setEnableVideo(true);
-        }
-        if (item.second->GetMediaType() == cmn::MediaType::Audio) {
-          muxer->setEnableAudio(true);
-        }
-      }
-      if (muxer->init()) {
-        return muxer;
-      }
-      return nullptr;
-    }
-
-    std::shared_ptr<sny::SnyMpeg2TsWriter> ts_muxer_ = nullptr;
+    std::map<int32_t, sny::SnyCodecType> track_codec_types_;
 
 		// Received data buffer
 		std::shared_ptr<ov::Data> 	_remained_data = nullptr;
 
 		// For statistics 
 		time_t _stream_check_time = 0;
-
 		uint32_t _key_frame_interval = 0;
 		uint32_t _previous_key_frame_timestamp = 0;
 		uint32_t _last_video_timestamp = 0;

@@ -135,6 +135,20 @@ void RtmpStream::SetConn(std::shared_ptr<uv::TcpConnection> conn) {
 bool RtmpStream::AddTrack(std::shared_ptr<MediaTrack> track)
 {
   _tracks.insert(std::make_pair(track->GetId(), track));
+  switch (track->GetCodecId()) {
+    case cmn::MediaCodecId::H264:
+      track_codec_types_.insert(std::make_pair(track->GetId(), sny::kCodecH264));
+      break;
+    case cmn::MediaCodecId::H265:
+      track_codec_types_.insert(std::make_pair(track->GetId(), sny::kCodecH265));
+      break;
+    case cmn::MediaCodecId::Aac:
+      track_codec_types_.insert(std::make_pair(track->GetId(), sny::kCodecAac));
+      break;
+    default:
+      track_codec_types_.insert(std::make_pair(track->GetId(), sny::kCodecUnknown));
+      break;
+  }
   return true;
 }
 
@@ -1075,7 +1089,7 @@ bool RtmpStream::CheckSignedPolicy()
                                                        cmn::BitstreamFormat::H264_AVCC, // RTMP's packet type is AVCC
                                                        packet_type);
 
-			ConvertToSnyMediaSample(video_frame);
+			ConvertToSnyMediaSample(video_track, video_frame);
 
 			// Statistics for debugging
 			if (flv_video.FrameType() == FlvVideoFrameTypes::KEY_FRAME)
@@ -1223,7 +1237,7 @@ bool RtmpStream::CheckSignedPolicy()
                                                        MediaPacketFlag::Key,
                                                        cmn::BitstreamFormat::AAC_LATM,
                                                        packet_type);
-			ConvertToSnyMediaSample(audio_frame);
+			ConvertToSnyMediaSample(audio_track, audio_frame);
 
 			_last_audio_timestamp = message->header->completed.timestamp;
 			_audio_frame_count++;
@@ -1677,15 +1691,15 @@ bool RtmpStream::CheckSignedPolicy()
 
 		return codec_string;
 	}
-  bool RtmpStream::ConvertToSnyMediaSample(std::shared_ptr<MediaPacket> media_packet) {
+  bool RtmpStream::ConvertToSnyMediaSample(std::shared_ptr<MediaTrack> &media_track, std::shared_ptr<MediaPacket> media_packet) {
     if (media_packet->GetMediaType() == cmn::MediaType::Video) {
       std::vector<uint8_t> extradata;
       if (H264AvccToAnnexB::GetExtradata(media_packet->GetPacketType(),
                                          media_packet->GetData(), extradata)) {
-        video_extra_data_ = extradata;
+        media_track->SetCodecExtradata(extradata);
         return false;
       }
-
+/*
       if (!H264AvccToAnnexB::Convert(media_packet->GetPacketType(),
                                      media_packet->GetData(),
                                      video_extra_data_)) {
@@ -1693,21 +1707,15 @@ bool RtmpStream::CheckSignedPolicy()
 
         return false;
       }
-
-      auto dts_us = sny::convertTimescale(media_packet->GetDts(),
-                                          sny::kTimescaleMillisecond,
-                                          sny::kTimescaleMicrosecond);
-      auto pts_us = sny::convertTimescale(media_packet->GetPts(),
-                                          sny::kTimescaleMillisecond,
-                                          sny::kTimescaleMicrosecond);
-      auto duration_us = sny::convertTimescale(media_packet->GetDuration(),
-                                               sny::kTimescaleMillisecond,
-                                               sny::kTimescaleMicrosecond);
+*/
       auto video_media_sample = std::make_shared<sny::SnyMediaSample>(sny::kMediaTypeVideo,
-                                                                      dts_us,
-                                                                      pts_us,
-                                                                      duration_us);
-      video_media_sample->setKey(false);  // TODO:
+                                                                      track_codec_types_[media_track->GetId()],
+                                                                      sny::kBitStreamH264AVCC,
+                                                                      media_packet->GetFlag() == MediaPacketFlag::Key,
+                                                                      media_packet->GetDts(),
+                                                                      media_packet->GetPts(),
+                                                                      media_packet->GetDuration(),
+                                                                      media_track);
       video_media_sample->setData(
           (const char *)media_packet->GetData()->GetData(),
           media_packet->GetDataLength());
@@ -1717,29 +1725,24 @@ bool RtmpStream::CheckSignedPolicy()
       std::vector<uint8_t> extradata;
       if (AACLatmToAdts::GetExtradata(media_packet->GetPacketType(),
                                       media_packet->GetData(), extradata)) {
-        audio_extra_data_ = extradata;
+        media_track->SetCodecExtradata(extradata);
         return false;
       }
-
+/*
       if (!AACLatmToAdts::Convert(media_packet->GetPacketType(),
                                   media_packet->GetData(), audio_extra_data_)) {
         logte("Failed to change bitstream format");
         return false;
       }
-      auto dts_us = sny::convertTimescale(media_packet->GetDts(),
-                                          sny::kTimescaleMillisecond,
-                                          sny::kTimescaleMicrosecond);
-      auto pts_us = sny::convertTimescale(media_packet->GetPts(),
-                                          sny::kTimescaleMillisecond,
-                                          sny::kTimescaleMicrosecond);
-      auto duration_us = sny::convertTimescale(media_packet->GetDuration(),
-                                               sny::kTimescaleMillisecond,
-                                               sny::kTimescaleMicrosecond);
+*/
       auto audio_media_sample = std::make_shared<sny::SnyMediaSample>(sny::kMediaTypeAudio,
-                                                                      dts_us,
-                                                                      pts_us,
-                                                                      duration_us);
-      audio_media_sample->setKey(false);  // TODO:
+                                                                      track_codec_types_[media_track->GetId()],
+                                                                      sny::kBitStreamAACLATM,
+                                                                      true,
+                                                                      media_packet->GetDts(),
+                                                                      media_packet->GetPts(),
+                                                                      media_packet->GetDuration(),
+                                                                      media_track);
       audio_media_sample->setData(
           (const char *)media_packet->GetData()->GetData(),
           media_packet->GetDataLength());
@@ -1749,10 +1752,6 @@ bool RtmpStream::CheckSignedPolicy()
   }
 
 bool RtmpStream::SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample) {
-  if (ts_muxer_ == nullptr) {
-    ts_muxer_ = createTsMuxer();
-  }
-  ts_muxer_->writeSample(media_sample);
   return true;
 }
   }
