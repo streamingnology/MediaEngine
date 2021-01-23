@@ -511,9 +511,9 @@ void SnyMpeg2TsWriter::WriteMPEG2PacketCCTO16(AP4_ByteStream& output) {
 }
 
 void SnyMpeg2TsWriter::writeSample(std::shared_ptr<SnyMediaSample> sample) {
-  if (kMediaTypeAudio == sample->type() && ptr_audio_sample_stream_) {
+  if (kMediaTypeAudio == sample->getMeidaType() && ptr_audio_sample_stream_) {
     ptr_audio_sample_stream_->WriteSample(sample, nullptr, true, *output_);
-  } else if (kMediaTypeVideo == sample->type() && ptr_video_sample_stream_) {
+  } else if (kMediaTypeVideo == sample->getMeidaType() && ptr_video_sample_stream_) {
     ptr_video_sample_stream_->WriteSample(sample, nullptr, true, *output_);
   } else {
     //TODO:
