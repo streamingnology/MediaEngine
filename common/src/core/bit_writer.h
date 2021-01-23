@@ -8,7 +8,9 @@
 //==============================================================================
 #pragma once
 #include <vector>
-
+#include <cstdint>
+#include <memory>
+#include <cmath>
 namespace ov
 {
 	class BitWriter
