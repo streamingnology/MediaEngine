@@ -1,6 +1,6 @@
 #pragma once
 #include "media/media_buffer.h"
-
+#include "media/snymediasample.h"
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -123,8 +123,8 @@ public:
 	bool Stop();
 
 	bool AddTrack(cmn::MediaType media_type, int32_t track_id, std::shared_ptr<RtmpTrackInfo> trackinfo);
-
-	bool PutData(int32_t track_id, int64_t pts, int64_t dts, MediaPacketFlag flag, std::shared_ptr<ov::Data>& data);
+  
+  bool PutData(std::shared_ptr<sny::SnyMediaSample>& media_sample);
 
 	static void FFmpegLog(void* ptr, int level, const char* fmt, va_list vl);
 

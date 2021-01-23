@@ -272,111 +272,64 @@ bool RtmpWriter::AddTrack(cmn::MediaType media_type, int32_t track_id, std::shar
 // MP4
 //	- H264 : AnnexB bitstream
 // 	- AAC : ASC(Audio Specific Config) bitstream
+bool RtmpWriter::PutData(std::shared_ptr<sny::SnyMediaSample>& media_sample) {
+  std::unique_lock<std::mutex> mlock(_lock);
+  if (_format_context == nullptr)
+    return false;
+  // Find AVStream and Index;
+  int stream_index = 0;
+  auto iter = _track_map.find(media_sample->getTrackID());
+  if (iter == _track_map.end()) {
+    // logtw("There is no track id %d", track_id);
 
-bool RtmpWriter::PutData(int32_t track_id, int64_t pts, int64_t dts, MediaPacketFlag flag, std::shared_ptr<ov::Data> &data)
-{
-	std::unique_lock<std::mutex> mlock(_lock);
+    // Without a track, it's not an error. Ignore.
+    return true;
+  }
+  stream_index = iter->second;
+  AVStream *stream = _format_context->streams[stream_index];
+  if (stream == nullptr) {
+    logtw("There is no stream");
+    return false;
+  }
+  // Find Ouput Track Info
+  auto track_info = _trackinfo_map[media_sample->getTrackID()];
+  // Make avpacket
+  AVPacket pkt = {0};
+  av_init_packet(&pkt);
+  pkt.stream_index = stream_index;
+  pkt.flags = media_sample->isKey() ? AV_PKT_FLAG_KEY : 0;
+  pkt.pts = av_rescale_q(media_sample->pts(), AVRational{track_info->GetTimeBase().GetNum(), track_info->GetTimeBase().GetDen()}, stream->time_base);
+  pkt.dts = av_rescale_q(media_sample->dts(), AVRational{track_info->GetTimeBase().GetNum(), track_info->GetTimeBase().GetDen()}, stream->time_base);
 
-	if (_format_context == nullptr)
-		return false;
+  // TODO: Depending on the extension, the bitstream format should be changed.
+  // format(mpegts)
+  // 	- H264 : Passthrough(AnnexB)
+  //  - H265 : Passthrough(AnnexB)
+  //  - AAC : Passthrough(ADTS)
+  //  - OPUS : Passthrough (?)
+  //  - VP8 : Passthrough (unknown name)
+  // format(flv)
+  //	- H264 : AnnexB -> AVCC
+  //	- AAC : to LATM
+  // format(mp4)
+  //	- H264 : Passthrough
+  //	- AAC : to LATM
+  if (media_sample->getBitStreamFormat() == sny::kBitStreamH264AVCC ||
+      media_sample->getBitStreamFormat() == sny::kBitStreamAACLATM) {
+    pkt.size = media_sample->size();
+    pkt.data = (uint8_t *)media_sample->data();
+  }
+  int error = av_interleaved_write_frame(_format_context, &pkt);
+  if (error != 0)
+  {
+    char errbuf[256];
+    av_strerror(error, errbuf, sizeof(errbuf));
 
-	// Find AVStream and Index;
-	int stream_index = 0;
+    logte("Send packet error(%d:%s)", error, errbuf);
+    return false;
+  }
 
-	auto iter = _track_map.find(track_id);
-	if (iter == _track_map.end())
-	{
-		// logtw("There is no track id %d", track_id);
-
-		// Without a track, it's not an error. Ignore.
-		return true;
-	}
-	stream_index = iter->second;
-
-	AVStream *stream = _format_context->streams[stream_index];
-	if (stream == nullptr)
-	{
-		logtw("There is no stream");
-		return false;
-	}
-
-	// Find Ouput Track Info
-	auto track_info = _trackinfo_map[track_id];
-
-	// Make avpacket
-	AVPacket pkt = {0};
-	av_init_packet(&pkt);
-
-	pkt.stream_index = stream_index;
-	pkt.flags = (flag == MediaPacketFlag::Key) ? AV_PKT_FLAG_KEY : 0;
-	pkt.pts = av_rescale_q(pts, AVRational{track_info->GetTimeBase().GetNum(), track_info->GetTimeBase().GetDen()}, stream->time_base);
-	pkt.dts = av_rescale_q(dts, AVRational{track_info->GetTimeBase().GetNum(), track_info->GetTimeBase().GetDen()}, stream->time_base);
-
-	// TODO: Depending on the extension, the bitstream format should be changed.
-	// format(mpegts)
-	// 	- H264 : Passthrough(AnnexB)
-	//  - H265 : Passthrough(AnnexB)
-	//  - AAC : Passthrough(ADTS)
-	//  - OPUS : Passthrough (?)
-	//  - VP8 : Passthrough (unknown name)
-	// format(flv)
-	//	- H264 : AnnexB -> AVCC
-	//	- AAC : to LATM
-	// format(mp4)
-	//	- H264 : Passthrough
-	//	- AAC : to LATM
-
-	std::shared_ptr<ov::Data> nalu;
-
-	if ((stream->codecpar->codec_id == AV_CODEC_ID_AAC) &&
-		(strcmp(_format_context->oformat->name, "flv") == 0 || strcmp(_format_context->oformat->name, "mp4")))
-	{
-		pkt.size = data->GetLength() - 7;
-		pkt.data = (uint8_t *)data->GetDataAs<uint8_t>() + 7;
-	}
-	else if ((stream->codecpar->codec_id == AV_CODEC_ID_H264) && (strcmp(_format_context->oformat->name, "flv") == 0))
-	{
-		// AnnexB to AVCC
-		//  - remove START_CODE[4]
-		//  - append NalU length
-
-		// TODO(soulk): it should be changed to a common module.
-		// TODO(soulk): multiple NALUs in a single packet should be considered.
-
-		if (data->GetLength() <= 4)
-			return false;
-
-		nalu = data->Subdata(4, data->GetLength() - 4);
-		uint32_t nalu_length = nalu->GetLength();
-
-		unsigned char nalu_length_araay[4];
-		nalu_length_araay[0] = nalu_length >> 24;
-		nalu_length_araay[1] = nalu_length >> 16;
-		nalu_length_araay[2] = nalu_length >> 8;
-		nalu_length_araay[3] = nalu_length;
-
-		nalu->Insert(nalu_length_araay, 0, sizeof(nalu_length_araay));
-
-		pkt.data = (uint8_t *)nalu->GetDataAs<uint8_t>();
-		pkt.size = nalu->GetLength();
-	}
-	else
-	{
-		pkt.size = data->GetLength();
-		pkt.data = (uint8_t *)data->GetDataAs<uint8_t>();
-	}
-
-	int error = av_interleaved_write_frame(_format_context, &pkt);
-	if (error != 0)
-	{
-		char errbuf[256];
-		av_strerror(error, errbuf, sizeof(errbuf));
-
-		logte("Send packet error(%d:%s)", error, errbuf);
-		return false;
-	}
-
-	return true;
+  return true;
 }
 
 // FFMPEG DEBUG
