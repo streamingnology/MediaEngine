@@ -4,13 +4,14 @@
  */
 #include <chrono>
 #include <thread>
+#include <utility>
 #include "snyrtmpproxy.h"
 #include <easylogging++.h>
 namespace app {
 SnyRTMPProxy::SnyRTMPProxy(std::string name,
                            std::shared_ptr<pvd::RtmpStream> rtmp_stream):threads_(this) {
-  name_ = name;
-  rtmp_stream_ = rtmp_stream;
+  name_ = std::move(name);
+  rtmp_stream_ = std::move(rtmp_stream);
   rtmp_stream_->setRTMPCallback(this);
 }
 
@@ -88,11 +89,11 @@ void SnyRTMPProxy::OnDataReceived(const char *data_buff, ssize_t data_size) {
   rtmp_stream_->OnDataReceived(data_buff, data_size);
 }
 
-std::shared_ptr<RtmpWriter> SnyRTMPProxy::createRtmpMuxer(std::string url) {
+std::shared_ptr<RtmpWriter> SnyRTMPProxy::createRtmpMuxer(const std::string& url) {
   auto muxer = std::make_shared<RtmpWriter>();
   ov::String path(url.c_str());
   muxer->SetPath(path,"flv");
-  for (auto item : tracks_) {
+  for (const auto& item : tracks_) {
     auto &track = item.second;
     auto quality = RtmpTrackInfo::Create();
     quality->SetCodecId( track->GetCodecId() );

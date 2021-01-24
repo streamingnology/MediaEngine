@@ -27,7 +27,7 @@ int main(int argc, char** args) {
   //std::map<std::string, std::shared_ptr<pvd::RtmpStream>> streams;
   std::map<std::string, std::shared_ptr<app::SnyRTMPProxy>> rtmp_proxys;
   uv::EventLoop* loop = uv::EventLoop::DefaultLoop();
-  uv::SocketAddr addr("0.0.0.0", 1935, uv::SocketAddr::Ipv4);
+  uv::SocketAddr addr("0.0.0.0", rtmp_proxy_cnf->rtmp_port, uv::SocketAddr::Ipv4);
   uv::TcpServer server(loop);
   server.setTimeout(60);
   server.setMessageCallback([&rtmp_proxys, &mutex](uv::TcpConnectionPtr ptr,

@@ -30,7 +30,7 @@ class SnyRTMPProxy : public sny::SnySourceCallback {
   void OnDataReceived(const char* data_buff, ssize_t data_size);
 
  private:
-  std::shared_ptr<RtmpWriter> createRtmpMuxer(std::string url);
+  std::shared_ptr<RtmpWriter> createRtmpMuxer(const std::string& url);
  private:
   std::string name_;
   std::string app_name_;
