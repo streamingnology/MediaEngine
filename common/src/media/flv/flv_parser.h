@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <cstddef>
 #include "core/byte_io.h"
 #define MIN_FLV_VIDEO_DATA_LENGTH		5
 
