@@ -32,6 +32,7 @@
 #include "media/rtmp/rtmp_export_chunk.h"
 #include "media/rtmp/rtmp_handshake.h"
 #include "media/rtmp/rtmp_import_chunk.h"
+#include "source/snysourcecallback.h"
 #define MAX_STREAM_MESSAGE_COUNT (100)
 #define BASELINE_PROFILE (66)
 #define MAIN_PROFILE (77)
@@ -54,7 +55,7 @@ namespace pvd
     void SetConn(std::shared_ptr<uv::TcpConnection> conn);
     bool AddTrack(std::shared_ptr<MediaTrack> track);
     std::shared_ptr<MediaTrack> GetTrack(int32_t id);
-
+    void setRTMPCallback(sny::SnySourceCallback* call_back) { call_back_ = call_back; }
 	protected:
 		bool ConvertToSnyMediaSample(std::shared_ptr<MediaTrack> &media_track, std::shared_ptr<MediaPacket> media_packet);
     bool SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample);
@@ -155,6 +156,7 @@ namespace pvd
 		// Received data buffer
 		std::shared_ptr<ov::Data> 	_remained_data = nullptr;
 
+    sny::SnySourceCallback* call_back_ = nullptr;
 		// For statistics 
 		time_t _stream_check_time = 0;
 		uint32_t _key_frame_interval = 0;

@@ -1336,7 +1336,12 @@ bool RtmpStream::CheckSignedPolicy()
 
 			AddTrack(new_track);
 		}
-
+    if (call_back_) {
+      std::string app_name = _app_name.CStr();
+      std::string stream_name = _stream_name.CStr();
+      call_back_->onRtmpAppStreamName(app_name, stream_name);
+      call_back_->onTrack(_tracks);
+    }
 		return true;
 	}
 
@@ -1752,6 +1757,9 @@ bool RtmpStream::CheckSignedPolicy()
   }
 
 bool RtmpStream::SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample) {
+  if (call_back_) {
+    call_back_->onSample(media_sample);
+  }
   return true;
 }
   }
