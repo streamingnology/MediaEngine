@@ -5,10 +5,10 @@
 #include "snyrtmpproxyconf.h"
 #include "source/rtmp/rtmp_stream.h"
 #include "snyrtmpproxy.h"
-#define ELPPP_THREAD_SAFE
-#include <easylogging++.h>
-INITIALIZE_EASYLOGGINGPP
+#include <core/snyeasylogging.h>
+
 int main(int argc, char** args) {
+  //el::Helpers::setStorage(sharedLoggingRepository());
   el::Configurations conf("el.conf");
   el::Loggers::reconfigureAllLoggers(conf);
 
