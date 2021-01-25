@@ -1,4 +1,5 @@
 #include "rtmp_writer.h"
+#include "core/snyeasylogging.h"
 /* 
 	[Test Code]
 
@@ -62,21 +63,16 @@ RtmpWriter::~RtmpWriter()
 	Stop();
 }
 
-bool RtmpWriter::SetPath(const ov::String path, const ov::String format)
-{
+bool RtmpWriter::SetPath(const std::string path, const std::string format) {
 	std::unique_lock<std::mutex> mlock(_lock);
-
-	if (path.IsEmpty() == true)
-	{
-		logte("The path is empty");
+  if (path.empty()) {
+    LOG(ERROR)<<"empty path";
 		return false;
 	}
-
-	_path = path;
+  _path = path;
 
 	// Release the allcated context;
-	if (_format_context != nullptr)
-	{
+	if (_format_context != nullptr) {
 		avformat_close_input(&_format_context);
 		avformat_free_context(_format_context);
 		_format_context = nullptr;
@@ -85,122 +81,93 @@ bool RtmpWriter::SetPath(const ov::String path, const ov::String format)
 	AVOutputFormat *output_format = nullptr;
 
 	// If the format is nullptr, it is automatically set based on the extension.
-	if (format != nullptr)
-	{
-		output_format = av_guess_format(format.CStr(), nullptr, nullptr);
-		if (output_format == nullptr)
-		{
-			logte("Unknown format. format(%s)", format.CStr());
+	if (!format.empty()) {
+		output_format = av_guess_format(format.c_str(), nullptr, nullptr);
+		if (output_format == nullptr) {
+      LOG(ERROR)<<"Unknown format. format("<<format<<")";
 			return false;
 		}
 	}
 
-	int error = avformat_alloc_output_context2(&_format_context, output_format, nullptr, path.CStr());
-	if (error < 0)
-	{
+	int error = avformat_alloc_output_context2(&_format_context, output_format, nullptr, path.c_str());
+	if (error < 0) {
 		char errbuf[256];
 		av_strerror(error, errbuf, sizeof(errbuf));
-
-		logte("Could not create output context. error(%d:%s), path(%s)", error, errbuf, path.CStr());
-
+    auto log = ov::String::FormatString("Could not create output context. error(%d:%s), path(%s)", error, errbuf, path.c_str());
+    LOG(ERROR)<<log;
 		return false;
 	}
 
 	return true;
 }
 
-ov::String RtmpWriter::GetPath()
-{
+std::string RtmpWriter::GetPath() {
 	return _path;
 }
 
-bool RtmpWriter::Start()
-{
+bool RtmpWriter::Start() {
 	std::unique_lock<std::mutex> mlock(_lock);
-
 	AVDictionary *options = nullptr;
-
 	// Examples
 	// av_dict_set(&out_options, "timeout", "1000000", 0);
 	// av_dict_set(&out_options, "tcp_nodelay", "1", 0);
 	// _format_context->flags = AVFMT_FLAG_NOBUFFER | AVFMT_FLAG_FLUSH_PACKETS;
-
-	if (!(_format_context->oformat->flags & AVFMT_NOFILE))
-	{
+	if (!(_format_context->oformat->flags & AVFMT_NOFILE)) {
 		int error = avio_open2(&_format_context->pb, _format_context->filename, AVIO_FLAG_WRITE, nullptr, &options);
-		if (error < 0)
-		{
+		if (error < 0) {
 			char errbuf[256];
 			av_strerror(error, errbuf, sizeof(errbuf));
-
-			logte("Error opening file. error(%d:%s), filename(%s)", error, errbuf, _format_context->filename);
-
+			auto log =ov::String::FormatString("Error opening file. error(%d:%s), filename(%s)", error, errbuf, _format_context->filename);
+      LOG(ERROR)<<log;
 			return false;
 		}
 	}
 
-	if (avformat_write_header(_format_context, nullptr) < 0)
-	{
-		logte("Could not create header");
+	if (avformat_write_header(_format_context, nullptr) < 0) {
+		LOG(ERROR)<<"Could not create header";
 		return false;
 	}
 
 	av_dump_format(_format_context, 0, _format_context->filename, 1);
 
-	if (_format_context->oformat != nullptr)
-	{
-		[[maybe_unused]] auto oformat = _format_context->oformat;
-		logtd("name : %s", oformat->name);
-		logtd("long_name : %s", oformat->long_name);
-		logtd("mime_type : %s", oformat->mime_type);
-		logtd("audio_codec : %d", oformat->audio_codec);
-		logtd("video_codec : %d", oformat->video_codec);
+	if (_format_context->oformat != nullptr) {
+		auto oformat = _format_context->oformat;
+    auto log = ov::String::FormatString("name : %s, long_name : %s, mime_type : %s, audio_codec : %d, video_codec : %d",
+                                        oformat->name, oformat->long_name,
+                                        oformat->mime_type, oformat->audio_codec, oformat->video_codec);
+    LOG(INFO)<<log.CStr();
 	}
-
 	return true;
 }
 
-bool RtmpWriter::Stop()
-{
+bool RtmpWriter::Stop() {
 	std::unique_lock<std::mutex> mlock(_lock);
-
-	if (_format_context != nullptr)
-	{
-		if (_format_context->pb != nullptr)
-		{
+  if (_format_context != nullptr) {
+		if (_format_context->pb != nullptr) {
 			av_write_trailer(_format_context);
 		}
-
 		avformat_close_input(&_format_context);
-
 		avformat_free_context(_format_context);
-
 		_format_context = nullptr;
 	}
-
 	return true;
 }
 
-bool RtmpWriter::AddTrack(cmn::MediaType media_type, int32_t track_id, std::shared_ptr<RtmpTrackInfo> track_info)
-{
+bool RtmpWriter::AddTrack(cmn::MediaType media_type, int32_t track_id,
+                          const std::shared_ptr<RtmpTrackInfo>& track_info) {
 	std::unique_lock<std::mutex> mlock(_lock);
-
 	AVStream *stream = nullptr;
-
-	//Stream #0:0(und): Video: h264 (Constrained Baseline) ([7][0][0][0] / 0x0007), yuv420p, 640x360 [SAR 1:1 DAR 16:9], q=2-31, 683 kb/s, 24 fps, 24 tbr, 1k tbn, 90k tbc (default)
+  //Stream #0:0(und): Video: h264 (Constrained Baseline) ([7][0][0][0] / 0x0007), yuv420p, 640x360 [SAR 1:1 DAR 16:9], q=2-31, 683 kb/s, 24 fps, 24 tbr, 1k tbn, 90k tbc (default)
 	//Stream #0:0:     Video: h264, 1 reference frame ([7][0][0][0] / 0x0007), yuv420p, 1920x1080 (0x0) [SAR 1:1 DAR 16:9], 0/1, q=2-31, 2500 kb/s
 	// 	[12-02 17:03:03.131] I 25357 FFmpeg | third_parties.cpp:118  |     Stream #0:0
 	// [12-02 17:03:03.131] I 25357 FFmpeg | third_parties.cpp:118  | : Video: h264 (Constrained Baseline), 1 reference frame ([7][0][0][0] / 0x0007), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 0/1, q=2-31, 2000 kb/s, 1k tbn, 30 tbc
-	switch (media_type)
-	{
+	switch (media_type) {
 		case cmn::MediaType::Video: {
 			stream = avformat_new_stream(_format_context, nullptr);
 			AVCodecParameters *codecpar = stream->codecpar;
-
 			codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
 			codecpar->codec_id =
 				(track_info->GetCodecId() == cmn::MediaCodecId::H264) ? AV_CODEC_ID_H264 : (track_info->GetCodecId() == cmn::MediaCodecId::H265) ? AV_CODEC_ID_H265 : (track_info->GetCodecId() == cmn::MediaCodecId::Vp8) ? AV_CODEC_ID_VP8 : (track_info->GetCodecId() == cmn::MediaCodecId::Vp9) ? AV_CODEC_ID_VP9 : AV_CODEC_ID_NONE;
-
 			codecpar->codec_tag = 0;
 			codecpar->bit_rate = track_info->GetBitrate();
 			codecpar->width = track_info->GetWidth();
@@ -209,16 +176,14 @@ bool RtmpWriter::AddTrack(cmn::MediaType media_type, int32_t track_id, std::shar
 			codecpar->sample_aspect_ratio = AVRational{1, 1};
 
 			// set extradata for avc_decoder_configuration_record
-			if (track_info->GetExtradata().size() > 0)
-			{
+			if (track_info->GetExtradata().size() > 0) {
 				codecpar->extradata_size = track_info->GetExtradata().size();
 				codecpar->extradata = (uint8_t *)av_malloc(codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
 				memset(codecpar->extradata, 0, codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
 				memcpy(codecpar->extradata, &track_info->GetExtradata()[0], codecpar->extradata_size);
 			}
-			else
-			{
-				logte("there is no avc configuration 0", track_info->GetExtradata().size());
+			else {
+        LOG(WARNING)<<"there is no extra data found in video track";
 			}
 
 			stream->display_aspect_ratio = AVRational{1, 1};
@@ -244,8 +209,7 @@ bool RtmpWriter::AddTrack(cmn::MediaType media_type, int32_t track_id, std::shar
 			codecpar->codec_tag = 0;
 
 			// set extradata for aac_specific_config
-			if (track_info->GetExtradata().size() > 0)
-			{
+			if (track_info->GetExtradata().size() > 0) {
 				codecpar->extradata_size = track_info->GetExtradata().size();
 				codecpar->extradata = (uint8_t *)av_malloc(codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
 				memset(codecpar->extradata, 0, codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
@@ -260,7 +224,8 @@ bool RtmpWriter::AddTrack(cmn::MediaType media_type, int32_t track_id, std::shar
 		break;
 
 		default: {
-			logtw("This media type is not supported. media_type(%d)", media_type);
+			auto log = ov::String::FormatString("This media type is not supported. media_type(%d)", media_type);
+      LOG(WARNING)<<log;
 			return false;
 		}
 		break;
@@ -280,15 +245,15 @@ bool RtmpWriter::PutData(std::shared_ptr<sny::SnyMediaSample>& media_sample) {
   int stream_index = 0;
   auto iter = _track_map.find(media_sample->getTrackID());
   if (iter == _track_map.end()) {
-    // logtw("There is no track id %d", track_id);
-
+    auto log = ov::String::FormatString("There is no track id %d", media_sample->getTrackID());
+    LOG(WARNING)<<log;
     // Without a track, it's not an error. Ignore.
     return true;
   }
   stream_index = iter->second;
   AVStream *stream = _format_context->streams[stream_index];
   if (stream == nullptr) {
-    logtw("There is no stream");
+    LOG(WARNING)<<"There is no stream";
     return false;
   }
   // Find Ouput Track Info
@@ -320,12 +285,11 @@ bool RtmpWriter::PutData(std::shared_ptr<sny::SnyMediaSample>& media_sample) {
     pkt.data = (uint8_t *)media_sample->data();
   }
   int error = av_interleaved_write_frame(_format_context, &pkt);
-  if (error != 0)
-  {
+  if (error != 0) {
     char errbuf[256];
     av_strerror(error, errbuf, sizeof(errbuf));
-
-    logte("Send packet error(%d:%s)", error, errbuf);
+    auto log = ov::String::FormatString("Send packet error(%d:%s)", error, errbuf);
+    LOG(WARNING)<<log;
     return false;
   }
 
@@ -333,8 +297,7 @@ bool RtmpWriter::PutData(std::shared_ptr<sny::SnyMediaSample>& media_sample) {
 }
 
 // FFMPEG DEBUG
-void RtmpWriter::FFmpegLog(void *ptr, int level, const char *fmt, va_list vl)
-{
+void RtmpWriter::FFmpegLog(void *ptr, int level, const char *fmt, va_list vl) {
 	va_list vl2;
 	char line[1024];
 	static int print_prefix = 1;
@@ -345,27 +308,32 @@ void RtmpWriter::FFmpegLog(void *ptr, int level, const char *fmt, va_list vl)
 	va_end(vl2);
 
 	// if(level >= AV_LOG_DEBUG) return;
-
+  ov::String log;
+  log.AppendVFormat(fmt, vl);
 	switch (level)
 	{
 		case AV_LOG_QUIET:
 		case AV_LOG_DEBUG:
 		case AV_LOG_VERBOSE:
+      //LOG(DEBUG)<<log;
 			logd(OV_LOG_TAG, line, vl);
 			break;
 		case AV_LOG_INFO:
+      //LOG(INFO)<<log;
 			logi(OV_LOG_TAG, line, vl);
 			break;
 		case AV_LOG_WARNING:
+      //LOG(WARNING)<<log;
 			logw(OV_LOG_TAG, line, vl);
 			break;
 		case AV_LOG_ERROR:
 		case AV_LOG_FATAL:
 		case AV_LOG_PANIC:
+      //LOG(ERROR)<<log;
 			loge(OV_LOG_TAG, line, vl);
 			break;
 		case AV_LOG_TRACE:
-			//		log_level = ANDROID_LOG_VERBOSE;
+			//log_level = ANDROID_LOG_VERBOSE;
 			break;
 	}
 }

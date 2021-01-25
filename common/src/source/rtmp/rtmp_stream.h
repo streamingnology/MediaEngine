@@ -152,6 +152,7 @@ namespace pvd
     std::shared_ptr<uv::TcpConnection> conn_ = nullptr;
     std::map<int32_t, std::shared_ptr<MediaTrack>> _tracks;
     std::map<int32_t, sny::SnyCodecType> track_codec_types_;
+    bool track_info_sent_ = false;
 
 		// Received data buffer
 		std::shared_ptr<ov::Data> 	_remained_data = nullptr;

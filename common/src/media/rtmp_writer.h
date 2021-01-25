@@ -115,22 +115,22 @@ public:
 	// format is muxer(or container)
 	// 	- mpegts
 	//  - mp4
-	bool SetPath(const ov::String path, const ov::String format = nullptr);
-	ov::String GetPath();
+	bool SetPath(std::string path, std::string format = "");
+  std::string GetPath();
 
 	bool Start();
 
 	bool Stop();
 
-	bool AddTrack(cmn::MediaType media_type, int32_t track_id, std::shared_ptr<RtmpTrackInfo> trackinfo);
+	bool AddTrack(cmn::MediaType media_type, int32_t track_id, const std::shared_ptr<RtmpTrackInfo>& trackinfo);
   
   bool PutData(std::shared_ptr<sny::SnyMediaSample>& media_sample);
 
 	static void FFmpegLog(void* ptr, int level, const char* fmt, va_list vl);
 
 private:
-	ov::String _path;
-	ov::String _format;
+	std::string _path;
+	std::string _format;
 
 	AVFormatContext* _format_context;
 

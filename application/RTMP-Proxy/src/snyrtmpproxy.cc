@@ -91,8 +91,7 @@ void SnyRTMPProxy::OnDataReceived(const char *data_buff, ssize_t data_size) {
 
 std::shared_ptr<RtmpWriter> SnyRTMPProxy::createRtmpMuxer(const std::string& url) {
   auto muxer = std::make_shared<RtmpWriter>();
-  ov::String path(url.c_str());
-  muxer->SetPath(path,"flv");
+  muxer->SetPath(url, "flv");
   for (const auto& item : tracks_) {
     auto &track = item.second;
     auto quality = RtmpTrackInfo::Create();
