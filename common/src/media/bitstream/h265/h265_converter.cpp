@@ -12,8 +12,8 @@
 
 #define OV_LOG_TAG "H265Converter"
 
-std::shared_ptr<const ov::Data> H265Converter::ConvertAnnexbToLengthPrefixed(const std::shared_ptr<const ov::Data> &data)
-{
-	// Same as H.264
-	return H264Converter::ConvertAnnexbToAvcc(data);
+std::shared_ptr<const ov::Data> H265Converter::ConvertAnnexbToLengthPrefixed(
+    const std::shared_ptr<const ov::Data> &data) {
+  // Same as H.264
+  return H264Converter::ConvertAnnexbToAvcc(data);
 }

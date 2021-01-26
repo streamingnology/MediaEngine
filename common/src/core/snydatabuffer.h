@@ -28,8 +28,7 @@ class SnyDataBuffer {
   virtual bool isEmpty() const;
   virtual void clear();
   virtual void fill(const char c = 0);
-  virtual SnyDataBuffer &subData(const SnyDataBuffer &data_buffer, int offset,
-                                 int length);
+  virtual SnyDataBuffer &subData(const SnyDataBuffer &data_buffer, int offset, int length);
   virtual bool append(const char *data, int size);
   virtual bool append(const SnyDataBuffer &data_buffer);
   virtual SnyDataBuffer clone() const;

@@ -13,4 +13,3 @@ class SnyIEventCallback {
   virtual void onEventCallback(void* user_data) = 0;
 };
 }  // namespace sny
-

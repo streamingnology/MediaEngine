@@ -57,12 +57,10 @@
 #else
 #define Q_OS_OS2
 #endif
-#elif !defined(SAG_COM) && \
-    (defined(WIN64) || defined(_WIN64) || defined(__WIN64__))
+#elif !defined(SAG_COM) && (defined(WIN64) || defined(_WIN64) || defined(__WIN64__))
 #define Q_OS_WIN32
 #define Q_OS_WIN64
-#elif !defined(SAG_COM) && (defined(WIN32) || defined(_WIN32) || \
-                            defined(__WIN32__) || defined(__NT__))
+#elif !defined(SAG_COM) && (defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__))
 #define Q_OS_WIN32
 #elif defined(__MWERKS__) && defined(__INTEL__)
 #define Q_OS_WIN32

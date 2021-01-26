@@ -3,8 +3,8 @@
  *code released under GPL license
  */
 #pragma once
-#define ELPP_AS_DLL // Tells Easylogging++ that it's used for DLL
-#define ELPP_EXPORT_SYMBOLS // Tells Easylogging++ to export symbols
+#define ELPP_AS_DLL          // Tells Easylogging++ that it's used for DLL
+#define ELPP_EXPORT_SYMBOLS  // Tells Easylogging++ to export symbols
 #include <easylogging++.h>
 /*
 #if defined(_MSC_VER)
@@ -23,4 +23,4 @@
 #endif
 */
 
-//EXPORT el::base::type::StoragePointer sharedLoggingRepository();
+// EXPORT el::base::type::StoragePointer sharedLoggingRepository();

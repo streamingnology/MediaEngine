@@ -3,20 +3,20 @@
  *code released under GPL license
  */
 #pragma once
-#include "core/snytype.h"
-#include "media/snymediasample.h"
-#include "core/snyresults.h"
 #include <Ap4.h>
 #include <queue>
-namespace sny{
+#include "core/snyresults.h"
+#include "core/snytype.h"
+#include "media/snymediasample.h"
+namespace sny {
 class SampleReader {
  public:
   SampleReader(AP4_Track& track, bool selected);
   virtual ~SampleReader();
 
   virtual AP4_Result ReadSample(AP4_Sample& sample, AP4_DataBuffer& sample_data) = 0;
-  AP4_Result GetSample(SnyMediaSample* &sample);
-  AP4_Result ReadSample(SnyMediaSample* &sample);
+  AP4_Result GetSample(SnyMediaSample*& sample);
+  AP4_Result ReadSample(SnyMediaSample*& sample);
 
   virtual AP4_Result Seek(AP4_UI64 timestamp_us) = 0;
   AP4_Result OnSeek(AP4_UI64 timestamp_us, AP4_Ordinal& sample_index);
@@ -60,8 +60,7 @@ class TrackSampleReader : public SampleReader {
 
 class FragmentedSampleReader : public SampleReader {
  public:
-  FragmentedSampleReader(AP4_LinearReader& fragment_reader, AP4_Track& track,
-                         AP4_UI32 track_id, bool selected);
+  FragmentedSampleReader(AP4_LinearReader& fragment_reader, AP4_Track& track, AP4_UI32 track_id, bool selected);
 
   AP4_Result ReadSample(AP4_Sample& sample, AP4_DataBuffer& sample_data) override;
 
@@ -70,4 +69,4 @@ class FragmentedSampleReader : public SampleReader {
  private:
   AP4_LinearReader& fragment_reader_;
 };
-}
+}  // namespace sny

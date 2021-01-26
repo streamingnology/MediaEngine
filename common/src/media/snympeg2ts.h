@@ -39,7 +39,7 @@ class SnyMpeg2TsWriter {
  public:
   enum OutPutType {
     kHardDrive = 0,
-    kMemory    = 1,
+    kMemory = 1,
   };
   class Stream {
    public:
@@ -48,8 +48,8 @@ class SnyMpeg2TsWriter {
 
     AP4_UI16 GetCC() { return (m_ContinuityCounter & 0x0F); }
     AP4_UI16 GetPID() { return m_PID; }
-    void WritePacketHeader(bool payload_start, unsigned int& payload_size,
-                           bool with_pcr, AP4_UI64 pcr, AP4_ByteStream& output);
+    void WritePacketHeader(bool payload_start, unsigned int& payload_size, bool with_pcr, AP4_UI64 pcr,
+                           AP4_ByteStream& output);
     void WriteMPEG2PacketCCTO16(AP4_ByteStream& output);
 
    private:
@@ -59,25 +59,18 @@ class SnyMpeg2TsWriter {
 
   class SampleStream : public Stream {
    public:
-    SampleStream(AP4_UI16 pid, AP4_UI08 stream_type, AP4_UI16 stream_id,
-                 AP4_UI32 timescale, const AP4_UI08* descriptor,
+    SampleStream(AP4_UI16 pid, AP4_UI08 stream_type, AP4_UI16 stream_id, AP4_UI32 timescale, const AP4_UI08* descriptor,
                  AP4_Size descriptor_length)
-        : Stream(pid),
-          m_StreamType(stream_type),
-          m_StreamId(stream_id),
-          m_TimeScale(timescale) {
+        : Stream(pid), m_StreamType(stream_type), m_StreamId(stream_id), m_TimeScale(timescale) {
       if (descriptor && descriptor_length) {
         m_Descriptor.SetData(descriptor, descriptor_length);
       }
     }
 
-    virtual AP4_Result WritePES(const unsigned char* data,
-                                unsigned int data_size, AP4_UI64 dts,
-                                bool with_dts, AP4_UI64 pts, bool with_pcr,
-                                AP4_ByteStream& output);
+    virtual AP4_Result WritePES(const unsigned char* data, unsigned int data_size, AP4_UI64 dts, bool with_dts,
+                                AP4_UI64 pts, bool with_pcr, AP4_ByteStream& output);
 
-    virtual AP4_Result WriteSample(std::shared_ptr<SnyMediaSample> sample,
-                                   AP4_SampleDescription* sample_description,
+    virtual AP4_Result WriteSample(std::shared_ptr<SnyMediaSample> sample, AP4_SampleDescription* sample_description,
                                    bool with_pcr, AP4_ByteStream& output) = 0;
 
     void SetType(AP4_UI08 type) { m_StreamType = type; }
@@ -103,19 +96,11 @@ class SnyMpeg2TsWriter {
 
   void WriteMPEG2PacketCCTO16(AP4_ByteStream& output);
 
-  void setFileName(std::string file_name) {
-    this->file_name_ = file_name;
-  }
-  std::string getFileName() {
-    return this->file_name_;
-  }
+  void setFileName(std::string file_name) { this->file_name_ = file_name; }
+  std::string getFileName() { return this->file_name_; }
 
-  void setOutputType(OutPutType type) {
-    this->out_put_type_ = type;
-  }
-  OutPutType getOutputType() {
-    return this->out_put_type_;
-  }
+  void setOutputType(OutPutType type) { this->out_put_type_ = type; }
+  OutPutType getOutputType() { return this->out_put_type_; }
 
   void setEnableAudio(bool enabled) { this->audio_enabled_ = enabled; }
   void setEnableVideo(bool enabled) { this->video_enabled_ = enabled; }
@@ -125,17 +110,14 @@ class SnyMpeg2TsWriter {
   bool init();
 
  private:
-  AP4_Result SetAudioStream(AP4_UI32 timescale, AP4_UI08 stream_type,
-                            AP4_UI16 stream_id,
-                            AP4_UI16 pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO,
-                            const AP4_UI08* descriptor = nullptr,
+  AP4_Result SetAudioStream(AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id,
+                            AP4_UI16 pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO, const AP4_UI08* descriptor = nullptr,
                             AP4_Size descriptor_length = 0);
-  AP4_Result SetVideoStream(AP4_UI32 timescale, AP4_UI08 stream_type,
-                            AP4_UI16 stream_id,
-                            AP4_UI16 pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO,
-                            const AP4_UI08* descriptor = nullptr,
+  AP4_Result SetVideoStream(AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id,
+                            AP4_UI16 pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO, const AP4_UI08* descriptor = nullptr,
                             AP4_Size descriptor_length = 0);
   AP4_Result CreateByteStream();
+
  private:
   OutPutType out_put_type_;
   Stream* ptr_pat_stream_;

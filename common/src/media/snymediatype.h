@@ -3,7 +3,7 @@
  *code released under GPL license
  */
 #pragma once
-namespace sny{
+namespace sny {
 enum SnyMediaType {
   kMediaTypeUnknown = -1,
   kMediaTypeAudio = 0,
@@ -28,4 +28,4 @@ enum SnyBitStreamFormat {
   kBitStreamAACLATM,
   kBitStreamAACADTS,
 };
-}
+}  // namespace sny

@@ -2,17 +2,14 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
+#include "media/snymediainfo.h"
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include <utility>
-#include "media/snymediainfo.h"
 
 namespace sny {
-SnyAudioTrackInfo::SnyAudioTrackInfo(SnyUI32 track_id,
-                                       SnySI64 track_duration_ms,
-                                       SnyMediaType sny_track_type,
-                                       SnyCodecType sny_track_codec,
-                                       std::string language) {
+SnyAudioTrackInfo::SnyAudioTrackInfo(SnyUI32 track_id, SnySI64 track_duration_ms, SnyMediaType sny_track_type,
+                                     SnyCodecType sny_track_codec, std::string language) {
   this->track_id_ = track_id;
   this->track_duration_ms_ = track_duration_ms;
   this->sny_track_mediatype_ = sny_track_type;
@@ -22,11 +19,9 @@ SnyAudioTrackInfo::SnyAudioTrackInfo(SnyUI32 track_id,
 
 SnyAudioTrackInfo::~SnyAudioTrackInfo() = default;
 
-SnyAudioTrackInfo::SnyAudioTrackInfo(const SnyAudioTrackInfo &object) {
-  operator=(object);
-}
+SnyAudioTrackInfo::SnyAudioTrackInfo(const SnyAudioTrackInfo& object) { operator=(object); }
 
-SnyAudioTrackInfo& SnyAudioTrackInfo::operator=(const SnyAudioTrackInfo &object) {
+SnyAudioTrackInfo& SnyAudioTrackInfo::operator=(const SnyAudioTrackInfo& object) {
   this->track_id_ = object.track_id_;
   this->track_duration_ms_ = object.track_duration_ms_;
   this->sny_track_mediatype_ = object.sny_track_mediatype_;
@@ -35,10 +30,8 @@ SnyAudioTrackInfo& SnyAudioTrackInfo::operator=(const SnyAudioTrackInfo &object)
   return *this;
 }
 
-SnyVideoTrackInfo::SnyVideoTrackInfo(SnyUI32 track_id,
-                                     SnySI64 track_duration_ms,
-                                     SnyMediaType sny_track_type,
-                                     SnyCodecType sny_track_codec){
+SnyVideoTrackInfo::SnyVideoTrackInfo(SnyUI32 track_id, SnySI64 track_duration_ms, SnyMediaType sny_track_type,
+                                     SnyCodecType sny_track_codec) {
   this->track_id_ = track_id;
   this->track_duration_ms_ = track_duration_ms;
   this->sny_track_mediatype_ = sny_track_type;
@@ -47,11 +40,9 @@ SnyVideoTrackInfo::SnyVideoTrackInfo(SnyUI32 track_id,
 
 SnyVideoTrackInfo::~SnyVideoTrackInfo() = default;
 
-SnyVideoTrackInfo::SnyVideoTrackInfo(const SnyVideoTrackInfo &object) {
-  operator=(object);
-}
+SnyVideoTrackInfo::SnyVideoTrackInfo(const SnyVideoTrackInfo& object) { operator=(object); }
 
-SnyVideoTrackInfo& SnyVideoTrackInfo::operator=(const SnyVideoTrackInfo &object) {
+SnyVideoTrackInfo& SnyVideoTrackInfo::operator=(const SnyVideoTrackInfo& object) {
   this->track_id_ = object.track_id_;
   this->track_duration_ms_ = object.track_duration_ms_;
   this->sny_track_mediatype_ = object.sny_track_mediatype_;
@@ -66,9 +57,7 @@ SnyMediaInfo::SnyMediaInfo() {
   this->media_file_error_ = "";
 }
 
-SnyMediaInfo::SnyMediaInfo(std::string path,
-                           SnyUI64 duration_ms, SnyUI64 size,
-                           std::string error) {
+SnyMediaInfo::SnyMediaInfo(std::string path, SnyUI64 duration_ms, SnyUI64 size, std::string error) {
   this->media_file_path_ = std::move(path);
   this->media_file_duration_ms_ = duration_ms;
   this->media_file_size_ = size;
@@ -77,11 +66,9 @@ SnyMediaInfo::SnyMediaInfo(std::string path,
 
 SnyMediaInfo::~SnyMediaInfo() = default;
 
-SnyMediaInfo::SnyMediaInfo(const SnyMediaInfo &object) {
-  operator=(object);
-}
+SnyMediaInfo::SnyMediaInfo(const SnyMediaInfo& object) { operator=(object); }
 
-SnyMediaInfo& SnyMediaInfo::operator=(const SnyMediaInfo &object) {
+SnyMediaInfo& SnyMediaInfo::operator=(const SnyMediaInfo& object) {
   this->media_file_path_ = object.media_file_path_;
   this->media_file_duration_ms_ = object.media_file_duration_ms_;
   this->media_file_size_ = object.media_file_size_;

@@ -3,9 +3,9 @@
  *code released under GPL license
  */
 #include "snydemuxer.h"
-#include "core/snyresults.h"
 #include <Ap4.h>
-namespace sny{
+#include "core/snyresults.h"
+namespace sny {
 SnyDemuxer::SnyDemuxer() {
   this->eos_ = false;
   this->uri_ = "";
@@ -16,13 +16,15 @@ SnyDemuxer::SnyDemuxer() {
 
 SnyDemuxer::~SnyDemuxer() {
   if (input_file_) {
-    delete input_file_; input_file_ = nullptr;
+    delete input_file_;
+    input_file_ = nullptr;
   }
   if (input_) {
     input_->Release();
   }
   if (linear_reader_) {
-    delete linear_reader_; linear_reader_ = nullptr;
+    delete linear_reader_;
+    linear_reader_ = nullptr;
   }
   for (auto item : sample_readers_) {
     delete item;
@@ -30,9 +32,7 @@ SnyDemuxer::~SnyDemuxer() {
   sample_readers_.clear();
 }
 
-void SnyDemuxer::setUri(std::string uri) {
-  this->uri_ = uri;
-}
+void SnyDemuxer::setUri(std::string uri) { this->uri_ = uri; }
 
 SnyResult SnyDemuxer::open() {
   AP4_Result result = AP4_FileByteStream::Create(uri_.c_str(), AP4_FileByteStream::STREAM_MODE_READ, input_);
@@ -40,13 +40,13 @@ SnyResult SnyDemuxer::open() {
     return SnyFailture;
   }
   input_file_ = new AP4_File(*input_, true);
-  //AP4_SampleDescription* sample_description;
+  // AP4_SampleDescription* sample_description;
   AP4_Movie* movie = input_file_->GetMovie();
   if (movie == nullptr) {
     return SnyFailture;
   }
   media_info_ = SnyMediaInfo(uri_, movie->GetDurationMs(), 0, "");
-  const int kMaxTrackNumber = 10; //TODO
+  const int kMaxTrackNumber = 10;  // TODO
   for (int i = 0; i < kMaxTrackNumber; i++) {
     AP4_Track* audio_track = movie->GetTrack(AP4_Track::TYPE_AUDIO, i);
     AP4_Track* video_track = movie->GetTrack(AP4_Track::TYPE_VIDEO, i);
@@ -65,16 +65,12 @@ SnyResult SnyDemuxer::open() {
       }
       if (audio_track && audio_track_info) {
         linear_reader_->EnableTrack(audio_track->GetId());
-        audio_reader = new FragmentedSampleReader(*linear_reader_, *audio_track,
-                                                  audio_track->GetId(),
-                                                  true);
+        audio_reader = new FragmentedSampleReader(*linear_reader_, *audio_track, audio_track->GetId(), true);
         sample_readers_.push_back(audio_reader);
       }
       if (video_track && video_track_info) {
         linear_reader_->EnableTrack(video_track->GetId());
-        video_reader = new FragmentedSampleReader(*linear_reader_, *video_track,
-                                                  video_track->GetId(),
-                                                  true);
+        video_reader = new FragmentedSampleReader(*linear_reader_, *video_track, video_track->GetId(), true);
         sample_readers_.push_back(video_reader);
       }
     } else {
@@ -87,7 +83,7 @@ SnyResult SnyDemuxer::open() {
         sample_readers_.push_back(video_reader);
       }
     }
-    if (audio_track_info){
+    if (audio_track_info) {
       media_info_.addAudioTrackInfo(*audio_track_info);
       delete audio_track_info;
     }
@@ -102,9 +98,7 @@ SnyResult SnyDemuxer::open() {
   return SnySuccess;
 }
 
-SnyMediaInfo SnyDemuxer::getMediaInfo() {
-  return media_info_;
-}
+SnyMediaInfo SnyDemuxer::getMediaInfo() { return media_info_; }
 
 SnyResult SnyDemuxer::selectTrack(SnyInt track_id) {
   for (auto iter : sample_readers_) {
@@ -141,7 +135,7 @@ SnyMediaSample* SnyDemuxer::readSample() {
   SnyInt index = -1, i = 0;
   for (auto iter : sample_readers_) {
     if (iter->IsSelected() && !iter->IsEos()) {
-      SnyResult  result = iter->GetSample(sample);
+      SnyResult result = iter->GetSample(sample);
       if (AP4_FAILED(result)) {
         continue;
       } else {
@@ -157,7 +151,8 @@ SnyMediaSample* SnyDemuxer::readSample() {
     SnyResult result = sample_readers_[index]->ReadSample(sample);
     if (AP4_FAILED(result)) {
       if (sample) {
-        delete sample; sample = nullptr;
+        delete sample;
+        sample = nullptr;
       }
     }
   } else {
@@ -179,7 +174,7 @@ SnyAudioTrackInfo* SnyDemuxer::getAudioTrackInfo(AP4_Track* track) {
                    sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
           codec_type = kCodecAc3;
         } else {
-          //TODO: log unknown codec
+          // TODO: log unknown codec
           break;
         }
         SnySI64 dur_ms = AP4_ConvertTime(track->GetMediaDuration(), track->GetMediaTimeScale(), kTimescaleMillisecond);
@@ -210,7 +205,7 @@ SnyVideoTrackInfo* SnyDemuxer::getVideoTrackInfo(AP4_Track* track) {
                    sample_description->GetFormat() == AP4_SAMPLE_FORMAT_DVH1) {
           codec_type = kCodecH265;
         } else {
-          //TODO: log unknown codec
+          // TODO: log unknown codec
           break;
         }
         SnySI64 dur_ms = AP4_ConvertTime(track->GetMediaDuration(), track->GetMediaTimeScale(), kTimescaleMillisecond);
@@ -220,4 +215,4 @@ SnyVideoTrackInfo* SnyDemuxer::getVideoTrackInfo(AP4_Track* track) {
   }
   return video_track_info;
 }
-}
+}  // namespace sny

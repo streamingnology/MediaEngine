@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cstdint>
 #include <unordered_map>
 #include <unordered_set>
-#include <cstdint>
 #include <vector>
 
 /*
@@ -12,16 +12,16 @@
     but the pps_ set only holds known pps_ ids for fast lookups. When a connected SPS/PPS set arrives, the linked entry
     is put in pps_sps_
 */
-class H264SpsPpsTracker
-{
-public:
-    bool AddSps(const uint8_t *sps, size_t length);
-    bool AddPps(const uint8_t *pps, size_t length);
+class H264SpsPpsTracker {
+ public:
+  bool AddSps(const uint8_t *sps, size_t length);
+  bool AddPps(const uint8_t *pps, size_t length);
 
-    const std::pair<std::vector<uint8_t>, std::vector<uint8_t>> *GetPpsSps(uint32_t pps_id);
+  const std::pair<std::vector<uint8_t>, std::vector<uint8_t>> *GetPpsSps(uint32_t pps_id);
 
-private:
-    std::unordered_map<uint32_t, std::vector<uint8_t>> sps_;
-    std::unordered_set<uint32_t> pps_;
-    std::unordered_map<uint32_t, std::pair<std::vector<uint8_t>, std::vector<uint8_t>>> pps_sps_; /* First pair element is PPS, second is SPS */
+ private:
+  std::unordered_map<uint32_t, std::vector<uint8_t>> sps_;
+  std::unordered_set<uint32_t> pps_;
+  std::unordered_map<uint32_t, std::pair<std::vector<uint8_t>, std::vector<uint8_t>>>
+      pps_sps_; /* First pair element is PPS, second is SPS */
 };

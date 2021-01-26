@@ -8,8 +8,7 @@
 //==============================================================================
 #pragma once
 #include "core/data.h"
-class H265Converter
-{
-public:
-	static std::shared_ptr<const ov::Data> ConvertAnnexbToLengthPrefixed(const std::shared_ptr<const ov::Data> &data);
+class H265Converter {
+ public:
+  static std::shared_ptr<const ov::Data> ConvertAnnexbToLengthPrefixed(const std::shared_ptr<const ov::Data> &data);
 };

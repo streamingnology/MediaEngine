@@ -1,13 +1,13 @@
-#include <uv11.hpp>
-#include <map>
-#include <iostream>
+#include <Ap4FileByteStream.h>
 #include <core/snydatabuffer.h>
+#include <core/snyeasylogging.h>
+#include <core/snyresults.h>
+#include <iostream>
+#include <map>
+#include <uv11.hpp>
+#include "snyrtmpproxy.h"
 #include "snyrtmpproxyconf.h"
 #include "source/rtmp/rtmp_stream.h"
-#include "snyrtmpproxy.h"
-#include <core/snyeasylogging.h>
-#include <Ap4FileByteStream.h>
-#include <core/snyresults.h>
 
 int main(int argc, char** args) {
   el::Configurations conf("el.conf");
@@ -17,26 +17,27 @@ int main(int argc, char** args) {
   bool success = false;
   AP4_ByteStream* byte_stream = nullptr;
   do {
-    AP4_Result result = AP4_FileByteStream::Create(rtmp_proxy_cnf_file.c_str(),
-                                                   AP4_FileByteStream::STREAM_MODE_READ,
-                                                   byte_stream);
+    AP4_Result result =
+        AP4_FileByteStream::Create(rtmp_proxy_cnf_file.c_str(), AP4_FileByteStream::STREAM_MODE_READ, byte_stream);
     if (AP4_FAILED(result)) {
-      LOG(ERROR)<< "open config.json failed";
+      LOG(ERROR) << "open config.json failed";
       break;
     }
     sny::SnyUI64 size;
     byte_stream->GetSize(size);
-    sny::SnyDataBuffer conf_data; conf_data.resize(size);
+    sny::SnyDataBuffer conf_data;
+    conf_data.resize(size);
     result = byte_stream->Read(conf_data.data(), conf_data.size());
     if (AP4_FAILED(result)) {
-      LOG(ERROR)<< "read config.json failed";
+      LOG(ERROR) << "read config.json failed";
       break;
     }
-    byte_stream->Release(); byte_stream = nullptr;
+    byte_stream->Release();
+    byte_stream = nullptr;
 
     auto rtmp_proxy_cnf = app::parse(conf_data);
     if (rtmp_proxy_cnf == nullptr) {
-      LOG(ERROR)<<"parse config.json failed";
+      LOG(ERROR) << "parse config.json failed";
       break;
     }
 
@@ -46,19 +47,17 @@ int main(int argc, char** args) {
     uv::SocketAddr addr("0.0.0.0", rtmp_proxy_cnf->rtmp_port, uv::SocketAddr::Ipv4);
     uv::TcpServer server(loop);
     server.setTimeout(60);
-    server.setMessageCallback([&rtmp_proxys, &mutex](uv::TcpConnectionPtr ptr,
-                                                     const char* data_buff,
-                                                     ssize_t data_size){
-      mutex.lock();
-      std::string conn_name = ptr->Name();
-      auto iter = rtmp_proxys.find(conn_name);
-      mutex.unlock();
-      if (iter != rtmp_proxys.end()) {
-        iter->second->OnDataReceived(data_buff, data_size);
-      }
-    });
-    server.setNewConnectCallback([&rtmp_proxys, &rtmp_proxy_cnf, &mutex](
-        const std::weak_ptr<uv::TcpConnection>& conn) {
+    server.setMessageCallback(
+        [&rtmp_proxys, &mutex](uv::TcpConnectionPtr ptr, const char* data_buff, ssize_t data_size) {
+          mutex.lock();
+          std::string conn_name = ptr->Name();
+          auto iter = rtmp_proxys.find(conn_name);
+          mutex.unlock();
+          if (iter != rtmp_proxys.end()) {
+            iter->second->OnDataReceived(data_buff, data_size);
+          }
+        });
+    server.setNewConnectCallback([&rtmp_proxys, &rtmp_proxy_cnf, &mutex](const std::weak_ptr<uv::TcpConnection>& conn) {
       mutex.lock();
       std::string conn_name;
       std::shared_ptr<uv::TcpConnection> tcp_connection_ptr = conn.lock();
@@ -74,8 +73,7 @@ int main(int argc, char** args) {
       std::cout << "there are " + std::to_string(rtmp_proxys.size()) + " streams." << std::endl;
       mutex.unlock();
     });
-    server.setConnectCloseCallback([&rtmp_proxys, &mutex](
-        const std::weak_ptr<uv::TcpConnection>& conn) {
+    server.setConnectCloseCallback([&rtmp_proxys, &mutex](const std::weak_ptr<uv::TcpConnection>& conn) {
       mutex.lock();
       std::string conn_name;
       std::shared_ptr<uv::TcpConnection> tcp_connection_ptr = conn.lock();
@@ -93,7 +91,7 @@ int main(int argc, char** args) {
 
     int ret = server.bindAndListen(addr);
     if (ret != 0) {
-      LOG(ERROR)<<"bind and listen on "<<rtmp_proxy_cnf->rtmp_port<<" failed";
+      LOG(ERROR) << "bind and listen on " << rtmp_proxy_cnf->rtmp_port << " failed";
       break;
     }
     loop->run();

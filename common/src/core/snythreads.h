@@ -57,9 +57,7 @@ class Threads {
   class AThread : public SThread {
    public:
     AThread(Threads *pt, int id) : SThread(), ptr_threads_(pt), id_(id) {}
-    int start(int priority = 0, const char *name = "") {
-      return SThread::start(priority, name);
-    }
+    int start(int priority = 0, const char *name = "") { return SThread::start(priority, name); }
     void stop() { SThread::stop(); }
     bool isStop() { return SThread::isStop(); }
     void wait() { SThread::wait(); }
@@ -121,8 +119,7 @@ bool Threads<ThreadHandler>::isStart(int id) {
 template <class ThreadHandler>
 void Threads<ThreadHandler>::stopAll() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
-  for (typename map<int, AThread *>::iterator iter = threads_.begin();
-       iter != threads_.end(); iter++) {
+  for (typename map<int, AThread *>::iterator iter = threads_.begin(); iter != threads_.end(); iter++) {
     AThread *pThread = iter->second;
     pThread->stop();
   }

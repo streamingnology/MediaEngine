@@ -6,6 +6,6 @@
 constexpr auto kH264NalUnitTypeMask = 0b11111;
 constexpr auto kH264NalRefIdcMask = 0b1100000;
 
-#define GET_NAL_REF_IDC(x) (((x) & kH264NalRefIdcMask) >> 5)
+#define GET_NAL_REF_IDC(x) (((x)&kH264NalRefIdcMask) >> 5)
 
 constexpr auto kH264SpsPpsNalRefIdc = 0b11;

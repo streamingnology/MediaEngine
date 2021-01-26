@@ -9,6 +9,6 @@
 /*
 INITIALIZE_EASYLOGGINGPP
 */
-//el::base::type::StoragePointer sharedLoggingRepository() {
+// el::base::type::StoragePointer sharedLoggingRepository() {
 //  return el::Helpers::storage();
 //}

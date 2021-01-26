@@ -74,8 +74,7 @@ extern "C" {
 
 namespace sny {
 namespace SnyUtils {
-  SnyUI64 convertTime(SnyUI64 time_value, SnyUI64 from_time_scale,
-                      SnyUI64 to_time_scale) {
+  SnyUI64 convertTime(SnyUI64 time_value, SnyUI64 from_time_scale, SnyUI64 to_time_scale) {
     if (from_time_scale == 0) return 0;
     double ratio = (double)to_time_scale / (double)from_time_scale;
     return ((SnyUI64)(0.5 + (double)time_value * ratio));
@@ -99,8 +98,7 @@ namespace SnyUtils {
     std::vector<std::string> vec;
 
     std::regex words_regex("([^/]+)");
-    auto words_begin =
-        std::sregex_iterator(uri.begin(), uri.end(), words_regex);
+    auto words_begin = std::sregex_iterator(uri.begin(), uri.end(), words_regex);
     auto words_end = std::sregex_iterator();
 
     for (auto i = words_begin; i != words_end; ++i) {
@@ -142,8 +140,7 @@ namespace SnyUtils {
           std::string ext;
           if (fp.has_extension()) {
             ext = fp.extension().string();
-            std::transform(ext.begin(), ext.end(), ext.begin(),
-                           [](unsigned char c) { return std::tolower(c); });
+            std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return std::tolower(c); });
             if (ext.compare(".mp4") == 0) {
               fileList.push_back(fFiename.generic_u8string());
             }
@@ -166,16 +163,14 @@ namespace SnyUtils {
           std::string name(dirp->d_name, dirp->d_namlen);
           if (name.compare(0, 1, ".") != 0) {
             std::string ext = name.substr(name.find_last_of('.') + 1);
-            std::transform(ext.begin(), ext.end(), ext.begin(),
-                           [](unsigned char c) { return std::tolower(c); });
+            std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return std::tolower(c); });
             if (ext.compare("mp4") == 0) {
               fileList.push_back(name);
             }
           }
         } else if (dirp->d_type == DT_DIR) {
           std::string name(dirp->d_name, dirp->d_namlen);
-          if (name.compare(".") != 0 && name.compare("..") != 0 &&
-              name.compare(0, 1, ".") != 0) {
+          if (name.compare(".") != 0 && name.compare("..") != 0 && name.compare(0, 1, ".") != 0) {
             folderList.push_back(name);
           }
         }
@@ -204,8 +199,7 @@ namespace SnyUtils {
           }
         } else if (dirp->d_type == DT_DIR) {
           std::string name(dirp->d_name, len);
-          if (name.compare(".") != 0 && name.compare("..") != 0 &&
-              name.compare(0, 1, ".") != 0) {
+          if (name.compare(".") != 0 && name.compare("..") != 0 && name.compare(0, 1, ".") != 0) {
             folderList.push_back(name);
           }
         }
@@ -235,8 +229,7 @@ namespace SnyUtils {
           }
         } else if (dirp->d_type == DT_DIR) {
           std::string name(dirp->d_name, len);
-          if (name.compare(".") != 0 && name.compare("..") != 0 &&
-              name.compare(0, 1, ".") != 0) {
+          if (name.compare(".") != 0 && name.compare("..") != 0 && name.compare(0, 1, ".") != 0) {
             folderList.push_back(name);
           }
         }
@@ -270,11 +263,9 @@ namespace SnyUtils {
 
       writer.StartObject();
       writer.Key("label");
-      writer.String(fileName.data(),
-                    static_cast<rapidjson::SizeType>(fileName.size()));
+      writer.String(fileName.data(), static_cast<rapidjson::SizeType>(fileName.size()));
       writer.Key("path");
-      writer.String(fullName.data(),
-                    static_cast<rapidjson::SizeType>(fullName.size()));
+      writer.String(fullName.data(), static_cast<rapidjson::SizeType>(fullName.size()));
       writer.Key("last");
       writer.Bool(false);
       writer.EndObject();
@@ -284,11 +275,9 @@ namespace SnyUtils {
       std::string fullName = path + "/" + *iter;
       writer.StartObject();
       writer.Key("label");
-      writer.String(fileName.data(),
-                    static_cast<rapidjson::SizeType>(fileName.size()));
+      writer.String(fileName.data(), static_cast<rapidjson::SizeType>(fileName.size()));
       writer.Key("path");
-      writer.String(fullName.data(),
-                    static_cast<rapidjson::SizeType>(fullName.size()));
+      writer.String(fullName.data(), static_cast<rapidjson::SizeType>(fullName.size()));
       writer.Key("last");
       writer.Bool(true);
       writer.EndObject();
@@ -303,8 +292,7 @@ namespace SnyUtils {
     return content;
   }
 
-  std::map<int, std::vector<std::string>> getDirectoryContent(
-      std::string path) {
+  std::map<int, std::vector<std::string>> getDirectoryContent(std::string path) {
     std::vector<std::string> folderList;
     std::vector<std::string> fileList;
     std::map<int, std::vector<std::string>> m;
@@ -334,8 +322,7 @@ namespace SnyUtils {
           std::string ext;
           if (fp.has_extension()) {
             ext = fp.extension().string();
-            std::transform(ext.begin(), ext.end(), ext.begin(),
-                           [](unsigned char c) { return std::tolower(c); });
+            std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return std::tolower(c); });
             if (ext.compare(".mp4") == 0) {
               fileList.push_back(fFiename.generic_u8string());
             }
@@ -360,14 +347,12 @@ namespace SnyUtils {
           std::string name(dirp->d_name, dirp->d_namlen);
           if (name.compare(0, 1, ".") != 0) {
             std::string ext = name.substr(name.find_last_of('.') + 1);
-            std::transform(ext.begin(), ext.end(), ext.begin(),
-                           [](unsigned char c) { return std::tolower(c); });
+            std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return std::tolower(c); });
             fileList.push_back(name);
           }
         } else if (dirp->d_type == DT_DIR) {
           std::string name(dirp->d_name, dirp->d_namlen);
-          if (name.compare(".") != 0 && name.compare("..") != 0 &&
-              name.compare(0, 1, ".") != 0) {
+          if (name.compare(".") != 0 && name.compare("..") != 0 && name.compare(0, 1, ".") != 0) {
             folderList.push_back(name);
           }
         }
@@ -396,8 +381,7 @@ namespace SnyUtils {
           }
         } else if (dirp->d_type == DT_DIR) {
           std::string name(dirp->d_name, len);
-          if (name.compare(".") != 0 && name.compare("..") != 0 &&
-              name.compare(0, 1, ".") != 0) {
+          if (name.compare(".") != 0 && name.compare("..") != 0 && name.compare(0, 1, ".") != 0) {
             folderList.push_back(name);
           }
         }
@@ -427,8 +411,7 @@ namespace SnyUtils {
           }
         } else if (dirp->d_type == DT_DIR) {
           std::string name(dirp->d_name, len);
-          if (name.compare(".") != 0 && name.compare("..") != 0 &&
-              name.compare(0, 1, ".") != 0) {
+          if (name.compare(".") != 0 && name.compare("..") != 0 && name.compare(0, 1, ".") != 0) {
             folderList.push_back(name);
           }
         }
@@ -457,8 +440,7 @@ namespace SnyUtils {
       int err = ioctl(fd, SIOCGIFADDR, &ifr);
       close(fd);
       if (err != -1) {
-        std::string ip(
-            inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
+        std::string ip(inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
         ips.push_back(ip);
       }
     }

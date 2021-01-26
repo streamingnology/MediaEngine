@@ -38,13 +38,11 @@ static const std::string kMediaServerWeb = "web";
 static const std::string kMediaServerVod = "vod";
 static const std::string kMediaServerLive = "live";
 
-static const std::string kMediaServerGetDirectoryContent =
-    "getDirectoryContent";
+static const std::string kMediaServerGetDirectoryContent = "getDirectoryContent";
 static const std::string kMediaServerGetSystemInfo = "getSystemInfo";
 static const std::string kMediaServerGetMediaInfo = "getMediaInfo";
 
-static const SnySI32 kMediaServerMaxRequestContentSize =
-    10 * 1024;  // 10K bytes
+static const SnySI32 kMediaServerMaxRequestContentSize = 10 * 1024;  // 10K bytes
 
 static const std::string kMediaServerRequestMediaPath = "path";
 

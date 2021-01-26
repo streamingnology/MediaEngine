@@ -4,6 +4,6 @@
  */
 #pragma once
 #include "core/snytype.h"
-namespace sny{
+namespace sny {
 SnyUI64 convertTimescale(SnyUI64 time_value, SnyUI64 from_time_scale, SnyUI64 to_time_scale);
 }

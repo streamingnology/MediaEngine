@@ -16,8 +16,7 @@
 #if defined(_M_IX86) || defined(_M_X64) || defined(_M_ARM) || defined(_M_ARM64)
 #define SNY_PLATFORM_BYTE_ORDER SNY_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN
 #endif
-#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__) || \
-    defined(__arm64__)
+#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__) || defined(__arm64__)
 #define SNY_PLATFORM_BYTE_ORDER SNY_PLATFORM_BYTE_ORDER_LITTLE_ENDIAN
 #endif
 #endif

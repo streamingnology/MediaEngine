@@ -10,47 +10,20 @@
 
 using namespace cmn;
 
-AudioTrack::AudioTrack()
-{
+AudioTrack::AudioTrack() {}
 
-}
+void AudioTrack::SetSampleRate(int32_t sample_rate) { _sample.SetRate((AudioSample::Rate)sample_rate); }
 
-void AudioTrack::SetSampleRate(int32_t sample_rate)
-{
-	_sample.SetRate((AudioSample::Rate)sample_rate);
-}
+int32_t AudioTrack::GetSampleRate() const { return (int32_t)_sample.GetRate(); }
 
-int32_t AudioTrack::GetSampleRate() const
-{
-	return (int32_t)_sample.GetRate();
-}
+void AudioTrack::SetAudioTimestampScale(double scale) { _audio_timescale = scale; }
 
-void AudioTrack::SetAudioTimestampScale(double scale)
-{
-	_audio_timescale = scale;
-}
+double AudioTrack::GetAudioTimestampScale() const { return _audio_timescale; }
 
-double AudioTrack::GetAudioTimestampScale() const
-{
-	return _audio_timescale;
-}
+AudioSample &AudioTrack::GetSample() { return _sample; }
 
-AudioSample &AudioTrack::GetSample()
-{
-	return _sample;
-}
+const AudioSample &AudioTrack::GetSample() const { return _sample; }
 
-const AudioSample &AudioTrack::GetSample() const
-{
-	return _sample;
-}
+AudioChannel &AudioTrack::GetChannel() { return _channel_layout; }
 
-AudioChannel &AudioTrack::GetChannel()
-{
-	return _channel_layout;
-}
-
-const AudioChannel &AudioTrack::GetChannel() const
-{
-	return _channel_layout;
-}
+const AudioChannel &AudioTrack::GetChannel() const { return _channel_layout; }

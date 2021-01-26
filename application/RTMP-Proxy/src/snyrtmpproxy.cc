@@ -2,22 +2,19 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
+#include "snyrtmpproxy.h"
+#include <easylogging++.h>
 #include <chrono>
 #include <thread>
 #include <utility>
-#include "snyrtmpproxy.h"
-#include <easylogging++.h>
 namespace app {
-SnyRTMPProxy::SnyRTMPProxy(std::string name,
-                           std::shared_ptr<pvd::RtmpStream> rtmp_stream):threads_(this) {
+SnyRTMPProxy::SnyRTMPProxy(std::string name, std::shared_ptr<pvd::RtmpStream> rtmp_stream) : threads_(this) {
   name_ = std::move(name);
   rtmp_stream_ = std::move(rtmp_stream);
   rtmp_stream_->setRTMPCallback(this);
 }
 
-SnyRTMPProxy::~SnyRTMPProxy() {
-  stop();
-}
+SnyRTMPProxy::~SnyRTMPProxy() { stop(); }
 
 void SnyRTMPProxy::start() {
   for (int i = 0; i < publish_streams_.size(); i++) {
@@ -32,10 +29,10 @@ void SnyRTMPProxy::stop() {
 
 int SnyRTMPProxy::onThreadProc(int id) {
   std::string publish_name = publish_streams_[id].publish_name_;
-  std::string publish_url  = publish_streams_[id].publish_url_;
+  std::string publish_url = publish_streams_[id].publish_url_;
   auto rtmp_muxer = createRtmpMuxer(publish_url);
   if (!rtmp_muxer) {
-    LOG(ERROR)<<"failed to create muxer for "<<publish_url;
+    LOG(ERROR) << "failed to create muxer for " << publish_url;
     return id;
   }
   while (threads_.isRunning(id)) {
@@ -56,7 +53,7 @@ int SnyRTMPProxy::onThreadProc(int id) {
 }
 
 void SnyRTMPProxy::onRtmpAppStreamName(std::string app_name, std::string stream_name) {
-  LOG(DEBUG)<<"/"<<app_name<<"/"<<stream_name;
+  LOG(DEBUG) << "/" << app_name << "/" << stream_name;
   app_name_ = app_name;
   stream_name_ = stream_name;
 }
@@ -65,7 +62,7 @@ void SnyRTMPProxy::onTrack(std::map<int32_t, std::shared_ptr<MediaTrack>> tracks
   tracks_ = tracks;
   auto& streams = cnf_->streams_;
   for (auto& item : cnf_->streams_) {
-    if (item.app_name_==app_name_ && item.stream_name_==stream_name_) {
+    if (item.app_name_ == app_name_ && item.stream_name_ == stream_name_) {
       publish_streams_ = item.publish_items_;
       break;
     }
@@ -85,7 +82,7 @@ void SnyRTMPProxy::onSample(std::shared_ptr<sny::SnyMediaSample> sample) {
   mutex_.unlock();
 }
 
-void SnyRTMPProxy::OnDataReceived(const char *data_buff, ssize_t data_size) {
+void SnyRTMPProxy::OnDataReceived(const char* data_buff, ssize_t data_size) {
   rtmp_stream_->OnDataReceived(data_buff, data_size);
 }
 
@@ -93,19 +90,19 @@ std::shared_ptr<RtmpWriter> SnyRTMPProxy::createRtmpMuxer(const std::string& url
   auto muxer = std::make_shared<RtmpWriter>();
   muxer->SetPath(url, "flv");
   for (const auto& item : tracks_) {
-    auto &track = item.second;
+    auto& track = item.second;
     auto quality = RtmpTrackInfo::Create();
-    quality->SetCodecId( track->GetCodecId() );
-    quality->SetBitrate( track->GetBitrate() );
-    quality->SetTimeBase( track->GetTimeBase() );
-    quality->SetWidth( track->GetWidth() );
-    quality->SetHeight( track->GetHeight() );
-    quality->SetSample( track->GetSample() );
-    quality->SetChannel( track->GetChannel() );
-    quality->SetExtradata(track->GetCodecExtradata() );
+    quality->SetCodecId(track->GetCodecId());
+    quality->SetBitrate(track->GetBitrate());
+    quality->SetTimeBase(track->GetTimeBase());
+    quality->SetWidth(track->GetWidth());
+    quality->SetHeight(track->GetHeight());
+    quality->SetSample(track->GetSample());
+    quality->SetChannel(track->GetChannel());
+    quality->SetExtradata(track->GetCodecExtradata());
     muxer->AddTrack(track->GetMediaType(), track->GetId(), quality);
   }
   muxer->Start();
   return muxer;
 }
-}
+}  // namespace app

@@ -3,11 +3,11 @@
  *code released under GPL license
  */
 #pragma once
+#include <core/snydatabuffer.h>
+#include <core/snytype.h>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-#include <core/snytype.h>
-#include <core/snydatabuffer.h>
 namespace app {
 class SnyRTMPProxyPublishItem {
  public:
@@ -32,4 +32,4 @@ class SnyRTMPProxyConf {
 
 std::shared_ptr<SnyRTMPProxyConf> parse(sny::SnyDataBuffer& cnf_json);
 
-}
+}  // namespace app

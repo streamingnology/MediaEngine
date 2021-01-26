@@ -38,66 +38,65 @@
 //		}
 //	}
 
-#define MIN_AVCDECODERCONFIGURATIONRECORD_SIZE	7
+#define MIN_AVCDECODERCONFIGURATIONRECORD_SIZE 7
 
-class AVCDecoderConfigurationRecord
-{
-public:
-	static bool Parse(const uint8_t *data, size_t data_length, AVCDecoderConfigurationRecord &record);
+class AVCDecoderConfigurationRecord {
+ public:
+  static bool Parse(const uint8_t *data, size_t data_length, AVCDecoderConfigurationRecord &record);
 
-	uint8_t Version();
-	uint8_t	ProfileIndication();
-	uint8_t Compatibility();
-	uint8_t LevelIndication();
-	uint8_t LengthOfNALUnit();
-	uint8_t NumOfSPS();
-	uint8_t NumOfPPS();
-	uint8_t NumofSPSExt();
-	std::shared_ptr<ov::Data>	GetSPS(int index);
-	std::shared_ptr<ov::Data>	GetPPS(int index);
-	std::shared_ptr<ov::Data>	GetSPSExt(int index);
-	uint8_t ChromaFormat();
-	uint8_t BitDepthLumaMinus8();
+  uint8_t Version();
+  uint8_t ProfileIndication();
+  uint8_t Compatibility();
+  uint8_t LevelIndication();
+  uint8_t LengthOfNALUnit();
+  uint8_t NumOfSPS();
+  uint8_t NumOfPPS();
+  uint8_t NumofSPSExt();
+  std::shared_ptr<ov::Data> GetSPS(int index);
+  std::shared_ptr<ov::Data> GetPPS(int index);
+  std::shared_ptr<ov::Data> GetSPSExt(int index);
+  uint8_t ChromaFormat();
+  uint8_t BitDepthLumaMinus8();
 
-	void Serialize(std::vector<uint8_t>& serialze);
+  void Serialize(std::vector<uint8_t> &serialze);
 
-	ov::String GetInfoString();
-	
-	void SetVersion(uint8_t version);
-	void SetProfileIndication(uint8_t profile_indiciation);
-	void SetCompatibility(uint8_t profile_compatibility);
-	void SetlevelIndication(uint8_t level_indication);
-	void SetLengthOfNalUnit(uint8_t lengthMinusOne);
-	void AddSPS(std::shared_ptr<ov::Data> sps);
-	void AddPPS(std::shared_ptr<ov::Data> pps);
-	
-private:
-	uint8_t		_version = 0;
-	uint8_t		_profile_indication = 0;
-	uint8_t		_profile_compatibility = 0;
-	uint8_t		_level_indication = 0;
-	uint8_t		_reserved1 = 0;			// (6 bits) = 111111b
-	uint8_t		_lengthMinusOne = 0;	// (2 bits)	= length of the NALUnitLength 0, 1, 3 correspoding to 1, 2, 4 (Usually 3)
-	uint8_t		_reserved2 = 0;			// (3 bits) = 111b
-	
-	// for(int i=0; i<_num_of_sps; i++)
-		// sps_length(16 bits) + sps
-	uint8_t		_num_of_sps = 0;		// (5 bits)
-	std::vector<std::shared_ptr<ov::Data>>	_sps_list;
+  ov::String GetInfoString();
 
-	// for(int i=0; i<_num_of_pps; i++)
-		// pps_length(16 bits) + sps
-	uint8_t		_num_of_pps = 0;		// (8 bits)
-	std::vector<std::shared_ptr<ov::Data>>	_pps_list;
+  void SetVersion(uint8_t version);
+  void SetProfileIndication(uint8_t profile_indiciation);
+  void SetCompatibility(uint8_t profile_compatibility);
+  void SetlevelIndication(uint8_t level_indication);
+  void SetLengthOfNalUnit(uint8_t lengthMinusOne);
+  void AddSPS(std::shared_ptr<ov::Data> sps);
+  void AddPPS(std::shared_ptr<ov::Data> pps);
 
-	// if _profile_indication == 100 or 110 or 122 or 144
-	uint8_t		_reserved3 = 0;			// (6 bits) = 111111b
-	uint8_t		_chroma_format = 0;		// (2 bits)
-	uint8_t		_reserved4 = 0;			// (5 bits) = 11111b
-	uint8_t		_bit_depth_luma_minus8 = 0;	// (3 bits)
-	
-	// for(int i=0; i<_num_of_sps_ext; i++)
-		// sps_ext_length(16 bits) + sps_ext
-	uint8_t		_num_of_sps_ext = 0;		// (8 bits)
-	std::vector<std::shared_ptr<ov::Data>>	_sps_ext_list;
+ private:
+  uint8_t _version = 0;
+  uint8_t _profile_indication = 0;
+  uint8_t _profile_compatibility = 0;
+  uint8_t _level_indication = 0;
+  uint8_t _reserved1 = 0;       // (6 bits) = 111111b
+  uint8_t _lengthMinusOne = 0;  // (2 bits)	= length of the NALUnitLength 0, 1, 3 correspoding to 1, 2, 4 (Usually 3)
+  uint8_t _reserved2 = 0;       // (3 bits) = 111b
+
+  // for(int i=0; i<_num_of_sps; i++)
+  // sps_length(16 bits) + sps
+  uint8_t _num_of_sps = 0;  // (5 bits)
+  std::vector<std::shared_ptr<ov::Data>> _sps_list;
+
+  // for(int i=0; i<_num_of_pps; i++)
+  // pps_length(16 bits) + sps
+  uint8_t _num_of_pps = 0;  // (8 bits)
+  std::vector<std::shared_ptr<ov::Data>> _pps_list;
+
+  // if _profile_indication == 100 or 110 or 122 or 144
+  uint8_t _reserved3 = 0;              // (6 bits) = 111111b
+  uint8_t _chroma_format = 0;          // (2 bits)
+  uint8_t _reserved4 = 0;              // (5 bits) = 11111b
+  uint8_t _bit_depth_luma_minus8 = 0;  // (3 bits)
+
+  // for(int i=0; i<_num_of_sps_ext; i++)
+  // sps_ext_length(16 bits) + sps_ext
+  uint8_t _num_of_sps_ext = 0;  // (8 bits)
+  std::vector<std::shared_ptr<ov::Data>> _sps_ext_list;
 };

@@ -74,21 +74,16 @@ SnyDataBuffer::SnyDataBuffer(const SnyDataBuffer &sny_data_buffer) {
   operator=(sny_data_buffer);
 }
 
-SnyDataBuffer::SnyDataBuffer(const SnyDataBuffer &sny_data_buffer, int offset,
-                             int length) {
+SnyDataBuffer::SnyDataBuffer(const SnyDataBuffer &sny_data_buffer, int offset, int length) {
   ptr_sny_data_ = nullptr;
   offset_ = -1;
   length_ = 0;
   subData(sny_data_buffer, offset, length);
 }
 
-SnyDataBuffer::SnyDataBuffer(const char *data, int size) {
-  allocData(data, size);
-}
+SnyDataBuffer::SnyDataBuffer(const char *data, int size) { allocData(data, size); }
 
-SnyDataBuffer::SnyDataBuffer(const char *str) {
-  allocData(str, (int)strlen(str));
-}
+SnyDataBuffer::SnyDataBuffer(const char *str) { allocData(str, (int)strlen(str)); }
 
 SnyDataBuffer::SnyDataBuffer(int size) { allocData(nullptr, size); }
 
@@ -162,8 +157,7 @@ void SnyDataBuffer::clear() { releaseData(); }
 
 void SnyDataBuffer::fill(const char c) { memset(data(), c, size()); }
 
-SnyDataBuffer &SnyDataBuffer::subData(const SnyDataBuffer &sny_data_buffer,
-                                      int offset, int length) {
+SnyDataBuffer &SnyDataBuffer::subData(const SnyDataBuffer &sny_data_buffer, int offset, int length) {
   releaseData();
   if (sny_data_buffer.ptr_sny_data_ != nullptr) {
     sny_data_buffer.ptr_sny_data_->addRef();
@@ -200,9 +194,7 @@ bool SnyDataBuffer::append(const SnyDataBuffer &sny_data_buffer) {
   return this->append(sny_data_buffer.data(), sny_data_buffer.size());
 }
 
-SnyDataBuffer SnyDataBuffer::clone() const {
-  return SnyDataBuffer(this->data(), this->size());
-}
+SnyDataBuffer SnyDataBuffer::clone() const { return SnyDataBuffer(this->data(), this->size()); }
 
 SnyDataBuffer &SnyDataBuffer::operator=(const SnyDataBuffer &sny_data_buffer) {
   releaseData();

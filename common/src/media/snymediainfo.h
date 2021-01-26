@@ -12,14 +12,12 @@
 namespace sny {
 class SnyAudioTrackInfo {
  public:
-  SnyAudioTrackInfo(SnyUI32 track_id,
-                     SnySI64 track_duration_ms,
-                     SnyMediaType sny_track_type,
-                     SnyCodecType sny_track_codec, std::string language);
+  SnyAudioTrackInfo(SnyUI32 track_id, SnySI64 track_duration_ms, SnyMediaType sny_track_type,
+                    SnyCodecType sny_track_codec, std::string language);
   ~SnyAudioTrackInfo();
 
   SnyAudioTrackInfo(const SnyAudioTrackInfo &object);
-  SnyAudioTrackInfo& operator=(const SnyAudioTrackInfo &object);
+  SnyAudioTrackInfo &operator=(const SnyAudioTrackInfo &object);
   SnyUI32 track_id_;
   SnyUI64 track_duration_ms_;
   SnyMediaType sny_track_mediatype_;
@@ -29,14 +27,12 @@ class SnyAudioTrackInfo {
 
 class SnyVideoTrackInfo {
  public:
-  SnyVideoTrackInfo(SnyUI32 track_id,
-                    SnySI64 track_duration_ms,
-                    SnyMediaType sny_track_type,
+  SnyVideoTrackInfo(SnyUI32 track_id, SnySI64 track_duration_ms, SnyMediaType sny_track_type,
                     SnyCodecType sny_track_codec);
   ~SnyVideoTrackInfo();
 
   SnyVideoTrackInfo(const SnyVideoTrackInfo &object);
-  SnyVideoTrackInfo& operator=(const SnyVideoTrackInfo &object);
+  SnyVideoTrackInfo &operator=(const SnyVideoTrackInfo &object);
   SnyUI32 track_id_;
   SnyUI64 track_duration_ms_;
   SnyMediaType sny_track_mediatype_;
@@ -48,15 +44,14 @@ class SnyVideoTrackInfo {
 class SnyMediaInfo {
  public:
   SnyMediaInfo();
-  SnyMediaInfo(std::string path, SnyUI64 duration_ms,
-                SnyUI64 size, std::string error);
+  SnyMediaInfo(std::string path, SnyUI64 duration_ms, SnyUI64 size, std::string error);
   ~SnyMediaInfo();
 
   SnyMediaInfo(const SnyMediaInfo &object);
-  SnyMediaInfo& operator=(const SnyMediaInfo &object);
+  SnyMediaInfo &operator=(const SnyMediaInfo &object);
 
-  void addAudioTrackInfo(const SnyAudioTrackInfo& audio_track_info);
-  void addVideoTrackInfo(const SnyVideoTrackInfo& video_track_info);
+  void addAudioTrackInfo(const SnyAudioTrackInfo &audio_track_info);
+  void addVideoTrackInfo(const SnyVideoTrackInfo &video_track_info);
   std::string toJSON();
 
   std::string media_file_path_;

@@ -1,134 +1,115 @@
 
 #include "h264_avcc_to_annexb.h"
+#include "core/byte_stream.h"
 #include "h264_decoder_configuration_record.h"
 #include "h264_parser.h"
-#include "core/byte_stream.h"
 
 #define OV_LOG_TAG "H264AvccToAnnexB"
 
-static uint8_t START_CODE[4] = { 0x00, 0x00, 0x00, 0x01 };
+static uint8_t START_CODE[4] = {0x00, 0x00, 0x00, 0x01};
 
-bool H264AvccToAnnexB::GetExtradata(const cmn::PacketType type, const std::shared_ptr<ov::Data> &data, std::vector<uint8_t> &extradata)
-{
-	if(type == cmn::PacketType::SEQUENCE_HEADER)
-	{
-		AVCDecoderConfigurationRecord config;
-		if(!AVCDecoderConfigurationRecord::Parse(data->GetDataAs<uint8_t>(), data->GetLength(), config))
-		{
-			logte("Could not parse sequence header"); 
-			return false;
-		}
-		logtd("%s", config.GetInfoString().CStr());
+bool H264AvccToAnnexB::GetExtradata(const cmn::PacketType type, const std::shared_ptr<ov::Data> &data,
+                                    std::vector<uint8_t> &extradata) {
+  if (type == cmn::PacketType::SEQUENCE_HEADER) {
+    AVCDecoderConfigurationRecord config;
+    if (!AVCDecoderConfigurationRecord::Parse(data->GetDataAs<uint8_t>(), data->GetLength(), config)) {
+      logte("Could not parse sequence header");
+      return false;
+    }
+    logtd("%s", config.GetInfoString().CStr());
 
-		config.Serialize(extradata);
+    config.Serialize(extradata);
 
-		return true;   
-	}
+    return true;
+  }
 
-	return false;
+  return false;
 }
 
-bool H264AvccToAnnexB::Convert(cmn::PacketType type, const std::shared_ptr<ov::Data> &data, const std::vector<uint8_t> &extradata)
-{
-	auto annexb_data = std::make_shared<ov::Data>();
+bool H264AvccToAnnexB::Convert(cmn::PacketType type, const std::shared_ptr<ov::Data> &data,
+                               const std::vector<uint8_t> &extradata) {
+  auto annexb_data = std::make_shared<ov::Data>();
 
-	annexb_data->Clear();
+  annexb_data->Clear();
 
-	if(type == cmn::PacketType::SEQUENCE_HEADER)
-	{
-		AVCDecoderConfigurationRecord config;
-		if(!AVCDecoderConfigurationRecord::Parse(data->GetDataAs<uint8_t>(), data->GetLength(), config))
-		{
-			logte("Could not parse sequence header"); 
-			return false;
-		}
+  if (type == cmn::PacketType::SEQUENCE_HEADER) {
+    AVCDecoderConfigurationRecord config;
+    if (!AVCDecoderConfigurationRecord::Parse(data->GetDataAs<uint8_t>(), data->GetLength(), config)) {
+      logte("Could not parse sequence header");
+      return false;
+    }
 
-		for(int i=0 ; i<config.NumOfSPS() ; i++)
-		{
-			annexb_data->Append(START_CODE, sizeof(START_CODE));
-			annexb_data->Append(config.GetSPS(i));
-		}
-		
-		for(int i=0 ; i<config.NumOfPPS() ; i++)
-		{
-			annexb_data->Append(START_CODE, sizeof(START_CODE));
-			annexb_data->Append(config.GetPPS(i));
-		}
-	}
-	else if(type == cmn::PacketType::NALU)
-	{
-		ov::ByteStream read_stream(data.get());
+    for (int i = 0; i < config.NumOfSPS(); i++) {
+      annexb_data->Append(START_CODE, sizeof(START_CODE));
+      annexb_data->Append(config.GetSPS(i));
+    }
 
-		bool has_idr_slice = false;
+    for (int i = 0; i < config.NumOfPPS(); i++) {
+      annexb_data->Append(START_CODE, sizeof(START_CODE));
+      annexb_data->Append(config.GetPPS(i));
+    }
+  } else if (type == cmn::PacketType::NALU) {
+    ov::ByteStream read_stream(data.get());
 
-		while(read_stream.Remained() > 0)
-		{
-			if(read_stream.IsRemained(4) == false)
-			{
-				logte("Not enough data to parse NAL");
-				return false;
-			}
+    bool has_idr_slice = false;
 
-			size_t nal_length = read_stream.ReadBE32();
+    while (read_stream.Remained() > 0) {
+      if (read_stream.IsRemained(4) == false) {
+        logte("Not enough data to parse NAL");
+        return false;
+      }
 
-			if(read_stream.IsRemained(nal_length) == false)
-			{
-				logte("NAL length (%d) is greater than buffer length (%d)", nal_length, read_stream.Remained());
-				return false;
-			}
+      size_t nal_length = read_stream.ReadBE32();
 
-			auto nal_data = read_stream.GetRemainData()->Subdata(0LL, nal_length);
-			[[maybe_unused]] auto skipped = read_stream.Skip(nal_length);
-			OV_ASSERT2(skipped == nal_length);
+      if (read_stream.IsRemained(nal_length) == false) {
+        logte("NAL length (%d) is greater than buffer length (%d)", nal_length, read_stream.Remained());
+        return false;
+      }
 
-			H264NalUnitHeader header;
-			if(H264Parser::ParseNalUnitHeader(nal_data->GetDataAs<uint8_t>(), H264_NAL_UNIT_HEADER_SIZE, header) == true)
-			{
-				if(header.GetNalUnitType() == H264NalUnitType::IdrSlice)
-					has_idr_slice = true;
-			}
+      auto nal_data = read_stream.GetRemainData()->Subdata(0LL, nal_length);
+      [[maybe_unused]] auto skipped = read_stream.Skip(nal_length);
+      OV_ASSERT2(skipped == nal_length);
 
-			annexb_data->Append(START_CODE, sizeof(START_CODE));
-			annexb_data->Append(nal_data);
-		}   
+      H264NalUnitHeader header;
+      if (H264Parser::ParseNalUnitHeader(nal_data->GetDataAs<uint8_t>(), H264_NAL_UNIT_HEADER_SIZE, header) == true) {
+        if (header.GetNalUnitType() == H264NalUnitType::IdrSlice) has_idr_slice = true;
+      }
 
-		// Deprecated. The same function is performed in Mediarouter.
-		
-		// Append SPS/PPS NalU before IdrSlice NalU. not every packet.		
-		if(extradata.size() > 0 && has_idr_slice == true)
-		{
-			AVCDecoderConfigurationRecord config;
-			if(!AVCDecoderConfigurationRecord::Parse(extradata.data(), extradata.size(), config))
-			{
-				logte("Could not parse sequence header"); 
-				return false;
-			}			
+      annexb_data->Append(START_CODE, sizeof(START_CODE));
+      annexb_data->Append(nal_data);
+    }
 
-			auto sps_pps = std::make_shared<ov::Data>();
+    // Deprecated. The same function is performed in Mediarouter.
 
-			for(int i=0 ; i<config.NumOfSPS() ; i++)
-			{
-				sps_pps->Append(START_CODE, sizeof(START_CODE));
-				sps_pps->Append(config.GetSPS(i));
-			}
-			
-			for(int i=0 ; i<config.NumOfPPS() ; i++)
-			{
-				sps_pps->Append(START_CODE, sizeof(START_CODE));
-				sps_pps->Append(config.GetPPS(i));
-			}	
+    // Append SPS/PPS NalU before IdrSlice NalU. not every packet.
+    if (extradata.size() > 0 && has_idr_slice == true) {
+      AVCDecoderConfigurationRecord config;
+      if (!AVCDecoderConfigurationRecord::Parse(extradata.data(), extradata.size(), config)) {
+        logte("Could not parse sequence header");
+        return false;
+      }
 
-			annexb_data->Insert(sps_pps->GetDataAs<uint8_t>(), 0, sps_pps->GetLength());
-		}
-		
-	}
+      auto sps_pps = std::make_shared<ov::Data>();
 
-	data->Clear();
-	
-	if(annexb_data->GetLength() > 0)
-	{
-		data->Append(annexb_data);
-	}
+      for (int i = 0; i < config.NumOfSPS(); i++) {
+        sps_pps->Append(START_CODE, sizeof(START_CODE));
+        sps_pps->Append(config.GetSPS(i));
+      }
 
-	return true;
+      for (int i = 0; i < config.NumOfPPS(); i++) {
+        sps_pps->Append(START_CODE, sizeof(START_CODE));
+        sps_pps->Append(config.GetPPS(i));
+      }
+
+      annexb_data->Insert(sps_pps->GetDataAs<uint8_t>(), 0, sps_pps->GetLength());
+    }
+  }
+
+  data->Clear();
+
+  if (annexb_data->GetLength() > 0) {
+    data->Append(annexb_data);
+  }
+
+  return true;
 }

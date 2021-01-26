@@ -3,10 +3,10 @@
  *code released under GPL license
  */
 #pragma once
-#include "snyidemuxer.h"
+#include <vector>
 #include "media/snydemuxerhelper.h"
 #include "media/snymediainfo.h"
-#include <vector>
+#include "snyidemuxer.h"
 namespace sny {
 class SnyDemuxer : public SnyIDemuxer {
  public:

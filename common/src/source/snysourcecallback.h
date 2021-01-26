@@ -3,8 +3,8 @@
  *code released under GPL license
  */
 #pragma once
-#include <string>
 #include <memory>
+#include <string>
 #include "media/snymediasample.h"
 namespace sny {
 class SnySourceCallback {
@@ -15,4 +15,4 @@ class SnySourceCallback {
   virtual void onTrack(std::map<int32_t, std::shared_ptr<MediaTrack>> tracks) = 0;
   virtual void onSample(std::shared_ptr<sny::SnyMediaSample> sample) = 0;
 };
-}
+}  // namespace sny

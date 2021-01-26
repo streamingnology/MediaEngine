@@ -3,15 +3,15 @@
  *code released under GPL license
  */
 #pragma once
-#include <memory>
+#include <core/snythreads.h>
+#include <media/rtmp_writer.h>
+#include <source/rtmp/rtmp_stream.h>
+#include <source/snysourcecallback.h>
 #include <map>
+#include <memory>
 #include <utility>
 #include <vector>
-#include <core/snythreads.h>
-#include <source/rtmp/rtmp_stream.h>
 #include "snyrtmpproxyconf.h"
-#include <source/snysourcecallback.h>
-#include <media/rtmp_writer.h>
 namespace app {
 class SnyRTMPProxy : public sny::SnySourceCallback {
  public:
@@ -31,6 +31,7 @@ class SnyRTMPProxy : public sny::SnySourceCallback {
 
  private:
   std::shared_ptr<RtmpWriter> createRtmpMuxer(const std::string& url);
+
  private:
   std::string name_;
   std::string app_name_;
@@ -43,4 +44,4 @@ class SnyRTMPProxy : public sny::SnySourceCallback {
   std::mutex mutex_;
   std::map<int, std::deque<std::shared_ptr<sny::SnyMediaSample>>> samples;
 };
-}
+}  // namespace app

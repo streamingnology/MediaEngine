@@ -76,8 +76,7 @@ std::vector<std::string> SnyMachineInfo::getIpAddress() {
     int err = ioctl(fd, SIOCGIFADDR, &ifr);
     close(fd);
     if (err != -1) {
-      std::string ip(
-          inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
+      std::string ip(inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
       ips.push_back(ip);
     }
   }
@@ -142,7 +141,5 @@ SnyDataBuffer SnyMachineInfo::getMachineInfoInJSON() {
   return playlist_buffer;
 }
 
-void SnyMachineInfo::setAppVersion(std::string app_version) {
-  this->app_version_ = app_version;
-}
+void SnyMachineInfo::setAppVersion(std::string app_version) { this->app_version_ = app_version; }
 }  // namespace sny

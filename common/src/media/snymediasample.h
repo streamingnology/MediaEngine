@@ -6,16 +6,15 @@
 #include "core/snyconstants.h"
 #include "core/snydatabuffer.h"
 #include "core/snytype.h"
-#include "media/snymediatype.h"
 #include "media/media_track.h"
+#include "media/snymediatype.h"
 
 namespace sny {
 class SnyMediaSample {
  public:
   [[deprecated]] SnyMediaSample(SnyMediaType media_type, SnySI64 dts_us, SnySI64 pts_us, SnySI64 duration_us);
-  SnyMediaSample(SnyMediaType media_type, SnyCodecType codec_type, SnyBitStreamFormat bsf_fmt,
-                 bool key, SnySI64 dts_us, SnySI64 pts_us, SnySI64 duration_us,
-                 std::shared_ptr<MediaTrack>& track);
+  SnyMediaSample(SnyMediaType media_type, SnyCodecType codec_type, SnyBitStreamFormat bsf_fmt, bool key, SnySI64 dts_us,
+                 SnySI64 pts_us, SnySI64 duration_us, std::shared_ptr<MediaTrack> &track);
   ~SnyMediaSample();
 
  public:
@@ -39,8 +38,8 @@ class SnyMediaSample {
   void setPts(SnySI64 pts_us);
   void setDuration(SnySI64 duration_us);
   void setKey(SnyBool isKey);
-  void setMediaTrack(std::shared_ptr<MediaTrack>& track);
-  std::shared_ptr<MediaTrack>& getMediaTrack();
+  void setMediaTrack(std::shared_ptr<MediaTrack> &track);
+  std::shared_ptr<MediaTrack> &getMediaTrack();
   SnyInt getTrackID();
 
  protected:

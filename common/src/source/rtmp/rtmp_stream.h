@@ -8,13 +8,13 @@
 //==============================================================================
 
 #pragma once
-#include <iostream>
 #include <chrono>
+#include <iostream>
 #include <string>
-#include "media/common_types.h"
-#include "media/media_track.h"
 #include "core/url.h"
+#include "media/common_types.h"
 #include "media/media_buffer.h"
+#include "media/media_track.h"
 
 #include <Ap4.h>
 #include <Ap4FileByteStream.h>
@@ -38,135 +38,132 @@
 #define MAIN_PROFILE (77)
 
 // Fix track id
-#define RTMP_VIDEO_TRACK_ID		0
-#define RTMP_AUDIO_TRACK_ID		1
+#define RTMP_VIDEO_TRACK_ID 0
+#define RTMP_AUDIO_TRACK_ID 1
 
-namespace pvd
-{
-	class RtmpStream
-	{
-	public:
-		static std::shared_ptr<RtmpStream> Create(StreamSourceType source_type, uint32_t channel_id);
-		
-		explicit RtmpStream(StreamSourceType source_type, uint32_t channel_id);
-		~RtmpStream();
+namespace pvd {
+class RtmpStream {
+ public:
+  static std::shared_ptr<RtmpStream> Create(StreamSourceType source_type, uint32_t channel_id);
 
-    bool OnDataReceived(const char* data_buffer, int data_size);
-    void SetConn(std::shared_ptr<uv::TcpConnection> conn);
-    bool AddTrack(std::shared_ptr<MediaTrack> track);
-    std::shared_ptr<MediaTrack> GetTrack(int32_t id);
-    void setRTMPCallback(sny::SnySourceCallback* call_back) { call_back_ = call_back; }
-	protected:
-		bool ConvertToSnyMediaSample(std::shared_ptr<MediaTrack> &media_track, std::shared_ptr<MediaPacket> media_packet);
-    bool SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample);
-	private:
-		// AMF Event
-		void OnAmfConnect(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, double transaction_id);
-		void OnAmfCreateStream(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, double transaction_id);
-		void OnAmfFCPublish(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, double transaction_id);
-		void OnAmfPublish(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, double transaction_id);
-		void OnAmfDeleteStream(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, double transaction_id);
-		bool OnAmfMetaData(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, int32_t object_index);
+  explicit RtmpStream(StreamSourceType source_type, uint32_t channel_id);
+  ~RtmpStream();
 
+  bool OnDataReceived(const char *data_buffer, int data_size);
+  void SetConn(std::shared_ptr<uv::TcpConnection> conn);
+  bool AddTrack(std::shared_ptr<MediaTrack> track);
+  std::shared_ptr<MediaTrack> GetTrack(int32_t id);
+  void setRTMPCallback(sny::SnySourceCallback *call_back) { call_back_ = call_back; }
 
-		// Send messages
-		bool SendData(int data_size, uint8_t *data);
-		bool SendMessagePacket(std::shared_ptr<RtmpMuxMessageHeader> &message_header, std::shared_ptr<std::vector<uint8_t>> &data);
-		bool SendAcknowledgementSize(uint32_t acknowledgement_traffic);
+ protected:
+  bool ConvertToSnyMediaSample(std::shared_ptr<MediaTrack> &media_track, std::shared_ptr<MediaPacket> media_packet);
+  bool SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample);
 
-		bool SendUserControlMessage(uint16_t message, std::shared_ptr<std::vector<uint8_t>> &data);
-		bool SendWindowAcknowledgementSize(uint32_t size);
-		bool SendSetPeerBandwidth(uint32_t bandwidth);
-		bool SendStreamBegin();
-		bool SendStreamEnd();
-		bool SendAcknowledgementSize();
-		bool SendAmfCommand(std::shared_ptr<RtmpMuxMessageHeader> &message_header, AmfDocument &document);
-		bool SendAmfConnectResult(uint32_t chunk_stream_id, double transaction_id, double object_encoding);
-		bool SendAmfOnFCPublish(uint32_t chunk_stream_id, uint32_t stream_id, double client_id);
-		bool SendAmfCreateStreamResult(uint32_t chunk_stream_id, double transaction_id);
-		bool SendAmfOnStatus(uint32_t chunk_stream_id,
-							uint32_t stream_id,
-							char *level,
-							char *code,
-							char *description,
-							double client_id);
+ private:
+  // AMF Event
+  void OnAmfConnect(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, double transaction_id);
+  void OnAmfCreateStream(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document,
+                         double transaction_id);
+  void OnAmfFCPublish(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document,
+                      double transaction_id);
+  void OnAmfPublish(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, double transaction_id);
+  void OnAmfDeleteStream(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document,
+                         double transaction_id);
+  bool OnAmfMetaData(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, int32_t object_index);
 
-		// Parsing handshake messages
-		off_t ReceiveHandshakePacket(const std::shared_ptr<const ov::Data> &data);
-		bool SendHandshake(const std::shared_ptr<const ov::Data> &data);
+  // Send messages
+  bool SendData(int data_size, uint8_t *data);
+  bool SendMessagePacket(std::shared_ptr<RtmpMuxMessageHeader> &message_header,
+                         std::shared_ptr<std::vector<uint8_t>> &data);
+  bool SendAcknowledgementSize(uint32_t acknowledgement_traffic);
 
-		// Parsing chunk messages
-		int32_t ReceiveChunkPacket(const std::shared_ptr<const ov::Data> &data);
-		bool ReceiveChunkMessage();
+  bool SendUserControlMessage(uint16_t message, std::shared_ptr<std::vector<uint8_t>> &data);
+  bool SendWindowAcknowledgementSize(uint32_t size);
+  bool SendSetPeerBandwidth(uint32_t bandwidth);
+  bool SendStreamBegin();
+  bool SendStreamEnd();
+  bool SendAcknowledgementSize();
+  bool SendAmfCommand(std::shared_ptr<RtmpMuxMessageHeader> &message_header, AmfDocument &document);
+  bool SendAmfConnectResult(uint32_t chunk_stream_id, double transaction_id, double object_encoding);
+  bool SendAmfOnFCPublish(uint32_t chunk_stream_id, uint32_t stream_id, double client_id);
+  bool SendAmfCreateStreamResult(uint32_t chunk_stream_id, double transaction_id);
+  bool SendAmfOnStatus(uint32_t chunk_stream_id, uint32_t stream_id, char *level, char *code, char *description,
+                       double client_id);
 
-		bool ReceiveSetChunkSize(const std::shared_ptr<const RtmpMessage> &message);
-		void ReceiveWindowAcknowledgementSize(const std::shared_ptr<const RtmpMessage> &message);
-		void ReceiveAmfCommandMessage(const std::shared_ptr<const RtmpMessage> &message);
-		void ReceiveAmfDataMessage(const std::shared_ptr<const RtmpMessage> &message);
+  // Parsing handshake messages
+  off_t ReceiveHandshakePacket(const std::shared_ptr<const ov::Data> &data);
+  bool SendHandshake(const std::shared_ptr<const ov::Data> &data);
 
-		bool ReceiveAudioMessage(const std::shared_ptr<const RtmpMessage> &message);
-		bool ReceiveVideoMessage(const std::shared_ptr<const RtmpMessage> &message);
+  // Parsing chunk messages
+  int32_t ReceiveChunkPacket(const std::shared_ptr<const ov::Data> &data);
+  bool ReceiveChunkMessage();
 
-		ov::String GetCodecString(RtmpCodecType codec_type);
-		ov::String GetEncoderTypeString(RtmpEncoderType encoder_type);
+  bool ReceiveSetChunkSize(const std::shared_ptr<const RtmpMessage> &message);
+  void ReceiveWindowAcknowledgementSize(const std::shared_ptr<const RtmpMessage> &message);
+  void ReceiveAmfCommandMessage(const std::shared_ptr<const RtmpMessage> &message);
+  void ReceiveAmfDataMessage(const std::shared_ptr<const RtmpMessage> &message);
 
-		bool CheckReadyToPublish();
-		bool PublishStream();
-		bool SetTrackInfo(const std::shared_ptr<RtmpMediaInfo> &media_info);
+  bool ReceiveAudioMessage(const std::shared_ptr<const RtmpMessage> &message);
+  bool ReceiveVideoMessage(const std::shared_ptr<const RtmpMessage> &message);
 
-		bool CheckSignedPolicy();
+  ov::String GetCodecString(RtmpCodecType codec_type);
+  ov::String GetEncoderTypeString(RtmpEncoderType encoder_type);
 
-		// RTMP related
-		RtmpHandshakeState _handshake_state = RtmpHandshakeState::Uninitialized;
-		
-		std::shared_ptr<RtmpImportChunk> _import_chunk;
-		std::shared_ptr<RtmpExportChunk> _export_chunk;
-		std::shared_ptr<RtmpMediaInfo> _media_info;
+  bool CheckReadyToPublish();
+  bool PublishStream();
+  bool SetTrackInfo(const std::shared_ptr<RtmpMediaInfo> &media_info);
 
-		std::vector<std::shared_ptr<const RtmpMessage>> _stream_message_cache;
-		uint32_t _stream_message_cache_video_count = 0;
-		uint32_t _stream_message_cache_audio_count = 0;
+  bool CheckSignedPolicy();
 
-		uint32_t _acknowledgement_size = RTMP_DEFAULT_ACKNOWNLEDGEMENT_SIZE / 2;
-		uint32_t _acknowledgement_traffic = 0;
-		uint32_t _rtmp_stream_id = 1;
-		uint32_t _peer_bandwidth = RTMP_DEFAULT_PEER_BANDWIDTH;
-		double _client_id = 12345.0;
-		// Set from OnAmfPublish
-		int32_t _chunk_stream_id = 0;
+  // RTMP related
+  RtmpHandshakeState _handshake_state = RtmpHandshakeState::Uninitialized;
 
-		// parsed from packet
-		std::shared_ptr<ov::Url> _url = nullptr;
+  std::shared_ptr<RtmpImportChunk> _import_chunk;
+  std::shared_ptr<RtmpExportChunk> _export_chunk;
+  std::shared_ptr<RtmpMediaInfo> _media_info;
 
-		ov::String _full_url; // with stream_name
-		ov::String _tc_url;
-		ov::String _app_name;
-		ov::String _domain_name;
-		ov::String _stream_name;
-		ov::String _device_string;
+  std::vector<std::shared_ptr<const RtmpMessage>> _stream_message_cache;
+  uint32_t _stream_message_cache_video_count = 0;
+  uint32_t _stream_message_cache_audio_count = 0;
 
-    bool IsPublished() {
-      return published_;
-    }
-    bool published_;
-    std::shared_ptr<uv::TcpConnection> conn_ = nullptr;
-    std::map<int32_t, std::shared_ptr<MediaTrack>> _tracks;
-    std::map<int32_t, sny::SnyCodecType> track_codec_types_;
-    bool track_info_sent_ = false;
+  uint32_t _acknowledgement_size = RTMP_DEFAULT_ACKNOWNLEDGEMENT_SIZE / 2;
+  uint32_t _acknowledgement_traffic = 0;
+  uint32_t _rtmp_stream_id = 1;
+  uint32_t _peer_bandwidth = RTMP_DEFAULT_PEER_BANDWIDTH;
+  double _client_id = 12345.0;
+  // Set from OnAmfPublish
+  int32_t _chunk_stream_id = 0;
 
-		// Received data buffer
-		std::shared_ptr<ov::Data> 	_remained_data = nullptr;
+  // parsed from packet
+  std::shared_ptr<ov::Url> _url = nullptr;
 
-    sny::SnySourceCallback* call_back_ = nullptr;
-		// For statistics 
-		time_t _stream_check_time = 0;
-		uint32_t _key_frame_interval = 0;
-		uint32_t _previous_key_frame_timestamp = 0;
-		uint32_t _last_video_timestamp = 0;
-		uint32_t _last_audio_timestamp = 0;
-		uint32_t _previous_last_video_timestamp = 0;
-		uint32_t _previous_last_audio_timestamp = 0;
-		uint32_t _video_frame_count = 0;
-		uint32_t _audio_frame_count = 0;
-	};
-}
+  ov::String _full_url;  // with stream_name
+  ov::String _tc_url;
+  ov::String _app_name;
+  ov::String _domain_name;
+  ov::String _stream_name;
+  ov::String _device_string;
+
+  bool IsPublished() { return published_; }
+  bool published_;
+  std::shared_ptr<uv::TcpConnection> conn_ = nullptr;
+  std::map<int32_t, std::shared_ptr<MediaTrack>> _tracks;
+  std::map<int32_t, sny::SnyCodecType> track_codec_types_;
+  bool track_info_sent_ = false;
+
+  // Received data buffer
+  std::shared_ptr<ov::Data> _remained_data = nullptr;
+
+  sny::SnySourceCallback *call_back_ = nullptr;
+  // For statistics
+  time_t _stream_check_time = 0;
+  uint32_t _key_frame_interval = 0;
+  uint32_t _previous_key_frame_timestamp = 0;
+  uint32_t _last_video_timestamp = 0;
+  uint32_t _last_audio_timestamp = 0;
+  uint32_t _previous_last_video_timestamp = 0;
+  uint32_t _previous_last_audio_timestamp = 0;
+  uint32_t _video_frame_count = 0;
+  uint32_t _audio_frame_count = 0;
+};
+}  // namespace pvd

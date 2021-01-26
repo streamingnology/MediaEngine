@@ -13,8 +13,7 @@ SnyMediaSample::SnyMediaSample() {
   media_type_ = kMediaTypeUnknown;
 }
 
-SnyMediaSample::SnyMediaSample(SnyMediaType media_type, SnySI64 dts_us,
-                               SnySI64 pts_us, SnySI64 duration_us) {
+SnyMediaSample::SnyMediaSample(SnyMediaType media_type, SnySI64 dts_us, SnySI64 pts_us, SnySI64 duration_us) {
   this->media_type_ = media_type;
   this->codec_type_ = kCodecUnknown;
   this->bsf_fmt_ = kBitStreamUnknwon;
@@ -25,10 +24,9 @@ SnyMediaSample::SnyMediaSample(SnyMediaType media_type, SnySI64 dts_us,
   this->media_track_ = nullptr;
 }
 
-SnyMediaSample::SnyMediaSample(SnyMediaType media_type, SnyCodecType codec_type,
-                               SnyBitStreamFormat bsf_fmt, bool key,
+SnyMediaSample::SnyMediaSample(SnyMediaType media_type, SnyCodecType codec_type, SnyBitStreamFormat bsf_fmt, bool key,
                                SnySI64 dts_us, SnySI64 pts_us, SnySI64 duration_us,
-                               std::shared_ptr<MediaTrack>& track) {
+                               std::shared_ptr<MediaTrack> &track) {
   media_type_ = media_type;
   codec_type_ = codec_type;
   bsf_fmt_ = bsf_fmt;
@@ -63,13 +61,9 @@ bool SnyMediaSample::isKey() const { return key_frame_; }
 
 bool SnyMediaSample::isEmpty() const { return sny_data_buffer_.isEmpty(); }
 
-void SnyMediaSample::setDataBuffer(const SnyDataBuffer &dataBuffer) {
-  sny_data_buffer_ = dataBuffer;
-}
+void SnyMediaSample::setDataBuffer(const SnyDataBuffer &dataBuffer) { sny_data_buffer_ = dataBuffer; }
 
-void SnyMediaSample::setData(const char *data, SnyInt size) {
-  sny_data_buffer_.assign(data, size);
-}
+void SnyMediaSample::setData(const char *data, SnyInt size) { sny_data_buffer_.assign(data, size); }
 
 void SnyMediaSample::setDts(SnySI64 dts_us) { dts_us_ = dts_us; }
 
@@ -79,9 +73,9 @@ void SnyMediaSample::setDuration(SnySI64 duration_us) { duration_us_ = duration_
 
 void SnyMediaSample::setKey(bool isKey) { key_frame_ = isKey; }
 
-void SnyMediaSample::setMediaTrack(std::shared_ptr<MediaTrack>& track) { media_track_ = track; }
+void SnyMediaSample::setMediaTrack(std::shared_ptr<MediaTrack> &track) { media_track_ = track; }
 
-std::shared_ptr<MediaTrack>& SnyMediaSample::getMediaTrack() { return media_track_; }
+std::shared_ptr<MediaTrack> &SnyMediaSample::getMediaTrack() { return media_track_; }
 
 SnyInt SnyMediaSample::getTrackID() {
   if (media_track_) {

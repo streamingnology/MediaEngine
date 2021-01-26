@@ -8,23 +8,21 @@
 //==============================================================================
 #pragma once
 
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
 
-namespace ov
-{
-	class Semaphore
-	{
-	public:
-		void Notify();
+namespace ov {
+class Semaphore {
+ public:
+  void Notify();
 
-		void Wait();
+  void Wait();
 
-		bool TryWait();
+  bool TryWait();
 
-	private:
-		std::mutex _mutex;
-		std::condition_variable _condition;
-		unsigned long _count = 0;
-	};
-}
+ private:
+  std::mutex _mutex;
+  std::condition_variable _condition;
+  unsigned long _count = 0;
+};
+}  // namespace ov

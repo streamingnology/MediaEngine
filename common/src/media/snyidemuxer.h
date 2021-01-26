@@ -4,12 +4,12 @@
  */
 #pragma once
 #include "core/snytype.h"
+#include "media/snymediainfo.h"
 #include "media/snymediasample.h"
 #include "media/snymediatype.h"
-#include "media/snymediainfo.h"
-namespace sny{
+namespace sny {
 
-class SnyIDemuxer{
+class SnyIDemuxer {
  public:
   virtual void setUri(std::string uri) = 0;
   virtual SnyResult open() = 0;
@@ -21,4 +21,4 @@ class SnyIDemuxer{
   virtual SnyMediaSample* readSample() = 0;
 };
 
-}
+}  // namespace sny
