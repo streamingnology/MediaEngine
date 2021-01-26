@@ -44,3 +44,4 @@
 //   ~~     !                    ~~     ~          !!!!!!~~     ~~
 #define OV_GET_BITS(type, value, index, count) \
   ((type)((type)(((type)(value)) << ((sizeof(type) * 8) - ((index) + (count)))) >> ((sizeof(type) * 8) - (count))))
+  
