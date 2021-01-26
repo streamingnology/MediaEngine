@@ -10,10 +10,10 @@
 #include "source/rtmp/rtmp_stream.h"
 
 int main(int argc, char** args) {
-  el::Configurations conf("el.conf");
+  el::Configurations conf("../conf/el.conf");
   el::Loggers::reconfigureAllLoggers(conf);
 
-  std::string rtmp_proxy_cnf_file = "config.json";
+  std::string rtmp_proxy_cnf_file = "../conf/config.json";
   bool success = false;
   AP4_ByteStream* byte_stream = nullptr;
   do {
