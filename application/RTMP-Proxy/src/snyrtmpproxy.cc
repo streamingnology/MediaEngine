@@ -102,7 +102,10 @@ std::shared_ptr<RtmpWriter> SnyRTMPProxy::createRtmpMuxer(const std::string& url
     quality->SetExtradata(track->GetCodecExtradata());
     muxer->AddTrack(track->GetMediaType(), track->GetId(), quality);
   }
-  muxer->Start();
-  return muxer;
+  if (muxer->Start()) {
+    return muxer;
+  } else {
+    return nullptr;
+  }
 }
 }  // namespace app
