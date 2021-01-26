@@ -18,16 +18,16 @@ class RtmpTrackInfo {
   cmn::MediaCodecId GetCodecId() { return _codec_id; }
 
   void SetBitrate(int32_t bitrate) { _bitrate = bitrate; }
-  int32_t GetBitrate() { return _bitrate; }
+  int32_t GetBitrate() const { return _bitrate; }
 
   void SetTimeBase(cmn::Timebase timebase) { _timebase = timebase; }
   cmn::Timebase GetTimeBase() { return _timebase; }
 
   void SetWidth(int32_t width) { _width = width; }
-  int32_t GetWidth() { return _width; }
+  int32_t GetWidth() const { return _width; }
 
   void SetHeight(int32_t height) { _height = height; }
-  int32_t GetHeight() { return _height; }
+  int32_t GetHeight() const { return _height; }
 
   void SetSample(cmn::AudioSample sample) { _sample = sample; }
   cmn::AudioSample GetSample() { return _sample; }
@@ -63,7 +63,7 @@ class RtmpWriter {
   // format is muxer(or container)
   // 	- mpegts
   //  - mp4
-  bool SetPath(std::string path, std::string format = "");
+  bool SetPath(const std::string& path, const std::string& format = "");
   std::string GetPath();
 
   bool Start();

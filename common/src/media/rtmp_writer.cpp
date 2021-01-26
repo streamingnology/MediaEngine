@@ -57,7 +57,7 @@ RtmpWriter::RtmpWriter() : _format_context(nullptr) {
 
 RtmpWriter::~RtmpWriter() { Stop(); }
 
-bool RtmpWriter::SetPath(const std::string path, const std::string format) {
+bool RtmpWriter::SetPath(const std::string &path, const std::string &format) {
   std::unique_lock<std::mutex> mlock(_lock);
   if (path.empty()) {
     LOG(ERROR) << "empty path";
@@ -150,7 +150,7 @@ bool RtmpWriter::Stop() {
 bool RtmpWriter::AddTrack(cmn::MediaType media_type, int32_t track_id,
                           const std::shared_ptr<RtmpTrackInfo> &track_info) {
   std::unique_lock<std::mutex> mlock(_lock);
-  AVStream *stream = nullptr;
+  AVStream *stream;
   // Stream #0:0(und): Video: h264 (Constrained Baseline) ([7][0][0][0] / 0x0007), yuv420p, 640x360 [SAR 1:1 DAR 16:9],
   // q=2-31, 683 kb/s, 24 fps, 24 tbr, 1k tbn, 90k tbc (default) Stream #0:0:     Video: h264, 1 reference frame
   // ([7][0][0][0] / 0x0007), yuv420p, 1920x1080 (0x0) [SAR 1:1 DAR 16:9], 0/1, q=2-31, 2500 kb/s
@@ -162,11 +162,14 @@ bool RtmpWriter::AddTrack(cmn::MediaType media_type, int32_t track_id,
       stream = avformat_new_stream(_format_context, nullptr);
       AVCodecParameters *codecpar = stream->codecpar;
       codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-      codecpar->codec_id = (track_info->GetCodecId() == cmn::MediaCodecId::H264)   ? AV_CODEC_ID_H264
-                           : (track_info->GetCodecId() == cmn::MediaCodecId::H265) ? AV_CODEC_ID_H265
-                           : (track_info->GetCodecId() == cmn::MediaCodecId::Vp8)  ? AV_CODEC_ID_VP8
-                           : (track_info->GetCodecId() == cmn::MediaCodecId::Vp9)  ? AV_CODEC_ID_VP9
-                                                                                   : AV_CODEC_ID_NONE;
+      codecpar->codec_id =
+          (track_info->GetCodecId() == cmn::MediaCodecId::H264)
+              ? AV_CODEC_ID_H264
+              : (track_info->GetCodecId() == cmn::MediaCodecId::H265)
+                    ? AV_CODEC_ID_H265
+                    : (track_info->GetCodecId() == cmn::MediaCodecId::Vp8)
+                          ? AV_CODEC_ID_VP8
+                          : (track_info->GetCodecId() == cmn::MediaCodecId::Vp9) ? AV_CODEC_ID_VP9 : AV_CODEC_ID_NONE;
       codecpar->codec_tag = 0;
       codecpar->bit_rate = track_info->GetBitrate();
       codecpar->width = track_info->GetWidth();
@@ -175,7 +178,7 @@ bool RtmpWriter::AddTrack(cmn::MediaType media_type, int32_t track_id,
       codecpar->sample_aspect_ratio = AVRational{1, 1};
 
       // set extradata for avc_decoder_configuration_record
-      if (track_info->GetExtradata().size() > 0) {
+      if (!track_info->GetExtradata().empty()) {
         codecpar->extradata_size = track_info->GetExtradata().size();
         codecpar->extradata = (uint8_t *)av_malloc(codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
         memset(codecpar->extradata, 0, codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
@@ -196,22 +199,25 @@ bool RtmpWriter::AddTrack(cmn::MediaType media_type, int32_t track_id,
       AVCodecParameters *codecpar = stream->codecpar;
 
       codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
-      codecpar->codec_id = (track_info->GetCodecId() == cmn::MediaCodecId::Aac)    ? AV_CODEC_ID_AAC
-                           : (track_info->GetCodecId() == cmn::MediaCodecId::Mp3)  ? AV_CODEC_ID_MP3
-                           : (track_info->GetCodecId() == cmn::MediaCodecId::Opus) ? AV_CODEC_ID_OPUS
-                                                                                   : AV_CODEC_ID_NONE;
+      codecpar->codec_id =
+          (track_info->GetCodecId() == cmn::MediaCodecId::Aac)
+              ? AV_CODEC_ID_AAC
+              : (track_info->GetCodecId() == cmn::MediaCodecId::Mp3)
+                    ? AV_CODEC_ID_MP3
+                    : (track_info->GetCodecId() == cmn::MediaCodecId::Opus) ? AV_CODEC_ID_OPUS : AV_CODEC_ID_NONE;
       codecpar->bit_rate = track_info->GetBitrate();
       codecpar->channels = static_cast<int>(track_info->GetChannel().GetCounts());
-      codecpar->channel_layout =
-          (track_info->GetChannel().GetLayout() == cmn::AudioChannel::Layout::LayoutMono)     ? AV_CH_LAYOUT_MONO
-          : (track_info->GetChannel().GetLayout() == cmn::AudioChannel::Layout::LayoutStereo) ? AV_CH_LAYOUT_STEREO
-                                                                                              : 0;  // <- Unknown
+      codecpar->channel_layout = (track_info->GetChannel().GetLayout() == cmn::AudioChannel::Layout::LayoutMono)
+                                     ? AV_CH_LAYOUT_MONO
+                                     : (track_info->GetChannel().GetLayout() == cmn::AudioChannel::Layout::LayoutStereo)
+                                           ? AV_CH_LAYOUT_STEREO
+                                           : 0;  // <- Unknown
       codecpar->sample_rate = track_info->GetSample().GetRateNum();
       codecpar->frame_size = 1024;  // TODO: Need to Frame Size
       codecpar->codec_tag = 0;
 
       // set extradata for aac_specific_config
-      if (track_info->GetExtradata().size() > 0) {
+      if (!track_info->GetExtradata().empty()) {
         codecpar->extradata_size = track_info->GetExtradata().size();
         codecpar->extradata = (uint8_t *)av_malloc(codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
         memset(codecpar->extradata, 0, codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
@@ -241,7 +247,7 @@ bool RtmpWriter::PutData(std::shared_ptr<sny::SnyMediaSample> &media_sample) {
   std::unique_lock<std::mutex> mlock(_lock);
   if (_format_context == nullptr) return false;
   // Find AVStream and Index;
-  int stream_index = 0;
+  int stream_index;
   auto iter = _track_map.find(media_sample->getTrackID());
   if (iter == _track_map.end()) {
     auto log = ov::String::FormatString("There is no track id %d", media_sample->getTrackID());
@@ -258,7 +264,7 @@ bool RtmpWriter::PutData(std::shared_ptr<sny::SnyMediaSample> &media_sample) {
   // Find Ouput Track Info
   auto track_info = _trackinfo_map[media_sample->getTrackID()];
   // Make avpacket
-  AVPacket pkt = {0};
+  AVPacket pkt = {nullptr};
   av_init_packet(&pkt);
   pkt.stream_index = stream_index;
   pkt.flags = media_sample->isKey() ? AV_PKT_FLAG_KEY : 0;
@@ -336,6 +342,8 @@ void RtmpWriter::FFmpegLog(void *ptr, int level, const char *fmt, va_list vl) {
       break;
     case AV_LOG_TRACE:
       // log_level = ANDROID_LOG_VERBOSE;
+      break;
+    default:
       break;
   }
 }
