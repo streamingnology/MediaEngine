@@ -42,6 +42,8 @@ class SnyRTMPProxy : public sny::SnySourceCallback {
   std::vector<SnyRTMPProxyPublishItem> publish_streams_;
   std::map<int32_t, std::shared_ptr<MediaTrack>> tracks_;
   std::mutex mutex_;
+  std::mutex m_cv_;
+  std::condition_variable cv_;
   std::map<int, std::deque<std::shared_ptr<sny::SnyMediaSample>>> samples;
 };
 }  // namespace app

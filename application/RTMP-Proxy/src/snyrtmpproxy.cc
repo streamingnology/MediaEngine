@@ -24,6 +24,7 @@ void SnyRTMPProxy::start() {
 
 void SnyRTMPProxy::stop() {
   threads_.stopAll();
+  cv_.notify_all();
   threads_.waitAll();
 }
 
@@ -35,7 +36,8 @@ int SnyRTMPProxy::onThreadProc(int id) {
     LOG(ERROR) << "failed to create muxer for " << publish_url;
     return id;
   }
-  while (threads_.isRunning(id)) {
+  std::unique_lock<std::mutex> lock(m_cv_);
+  while (!threads_.isStop(id)) {
     mutex_.lock();
     std::shared_ptr<sny::SnyMediaSample> sample = nullptr;
     if (!samples[id].empty()) {
@@ -46,7 +48,7 @@ int SnyRTMPProxy::onThreadProc(int id) {
     if (sample) {
       rtmp_muxer->PutData(sample);
     } else {
-      std::this_thread::sleep_for(5ms);
+      cv_.wait(lock);
     }
   }
   return id;
@@ -80,6 +82,7 @@ void SnyRTMPProxy::onSample(std::shared_ptr<sny::SnyMediaSample> sample) {
     item.second.push_back(sample);
   }
   mutex_.unlock();
+  cv_.notify_all();
 }
 
 void SnyRTMPProxy::OnDataReceived(const char* data_buff, ssize_t data_size) {
