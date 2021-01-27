@@ -6,27 +6,22 @@
 //  Copyright (c) 2018 AirenSoft. All rights reserved.
 //
 //==============================================================================
-
 #pragma once
+#include <core/snyconstants.h>
+#include <media/snymediasample.h>
 #include <chrono>
+#include <deque>
+#include <iomanip>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <utility>
+#include <uv11.hpp>
+#include "core/snythreads.h"
 #include "core/url.h"
 #include "media/common_types.h"
 #include "media/media_buffer.h"
 #include "media/media_track.h"
-
-#include <Ap4.h>
-#include <Ap4FileByteStream.h>
-#include <core/snyconstants.h>
-#include <media/bitstream/aac/aac_latm_to_adts.h>
-#include <media/snymediasample.h>
-#include <media/snympeg2ts.h>
-#include <iomanip>
-#include <memory>
-#include <uv11.hpp>
-#include "core/event.h"
-#include "media/bitstream/h264/h264_avcc_to_annexb.h"
 #include "media/rtmp/amf_document.h"
 #include "media/rtmp/rtmp_chunk_parser.h"
 #include "media/rtmp/rtmp_export_chunk.h"
@@ -42,18 +37,23 @@
 #define RTMP_AUDIO_TRACK_ID 1
 
 namespace pvd {
+const int kRtmpStreamParseThread = 0;
+using OnRTMPSendDataCallback = std::function<void(std::string &conn_name, const char *data, const int size)>;
 class RtmpStream {
  public:
-  static std::shared_ptr<RtmpStream> Create(StreamSourceType source_type, uint32_t channel_id);
+  static std::shared_ptr<RtmpStream> Create(std::string conn_name);
 
-  explicit RtmpStream(StreamSourceType source_type, uint32_t channel_id);
+  explicit RtmpStream(std::string conn_name);
   ~RtmpStream();
 
   bool OnDataReceived(const char *data_buffer, int data_size);
-  void SetConn(std::shared_ptr<uv::TcpConnection> conn);
   bool AddTrack(std::shared_ptr<MediaTrack> track);
   std::shared_ptr<MediaTrack> GetTrack(int32_t id);
   void setRTMPCallback(sny::SnySourceCallback *call_back) { call_back_ = call_back; }
+  void setRTMPSendDataCallback(OnRTMPSendDataCallback callback) { send_data_callback_ = std::move(callback); }
+  int onThreadProc(int id);
+  void start();
+  void stop();
 
  protected:
   bool ConvertToSnyMediaSample(std::shared_ptr<MediaTrack> &media_track, std::shared_ptr<MediaPacket> media_packet);
@@ -146,12 +146,18 @@ class RtmpStream {
 
   bool IsPublished() { return published_; }
   bool published_;
-  std::shared_ptr<uv::TcpConnection> conn_ = nullptr;
+  std::string conn_name_;
+  OnRTMPSendDataCallback send_data_callback_;
   std::map<int32_t, std::shared_ptr<MediaTrack>> _tracks;
   std::map<int32_t, sny::SnyCodecType> track_codec_types_;
   bool track_info_sent_ = false;
+  sny::Threads<RtmpStream> threads_;
 
   // Received data buffer
+  std::mutex mutex_;
+  std::mutex mutex_cv_;
+  std::condition_variable cv_;
+  std::deque<std::shared_ptr<ov::Data>> incomming_data_;
   std::shared_ptr<ov::Data> _remained_data = nullptr;
 
   sny::SnySourceCallback *call_back_ = nullptr;
