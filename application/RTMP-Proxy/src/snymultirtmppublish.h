@@ -13,10 +13,10 @@
 #include <vector>
 #include "snyrtmpproxyconf.h"
 namespace app {
-class SnyRTMPProxy : public sny::SnySourceCallback {
+class SnyMultiRTMPPublish : public sny::SnySourceCallback {
  public:
-  SnyRTMPProxy(std::string name, std::shared_ptr<pvd::RtmpStream> rtmp_stream);
-  ~SnyRTMPProxy();
+  SnyMultiRTMPPublish(std::string name, std::shared_ptr<pvd::RtmpStream> rtmp_stream);
+  ~SnyMultiRTMPPublish();
 
   void start();
   void stop();
@@ -37,7 +37,7 @@ class SnyRTMPProxy : public sny::SnySourceCallback {
   std::string app_name_;
   std::string stream_name_;
   std::shared_ptr<SnyRTMPProxyConf> cnf_;
-  sny::Threads<SnyRTMPProxy> threads_;
+  sny::Threads<SnyMultiRTMPPublish> threads_;
   std::shared_ptr<pvd::RtmpStream> rtmp_stream_;
   std::vector<SnyRTMPProxyPublishItem> publish_streams_;
   std::map<int32_t, std::shared_ptr<MediaTrack>> tracks_;

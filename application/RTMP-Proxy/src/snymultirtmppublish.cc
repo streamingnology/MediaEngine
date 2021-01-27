@@ -2,33 +2,33 @@
  *copyleft (c) 2019 www.streamingnology.com
  *code released under GPL license
  */
-#include "snyrtmpproxy.h"
+#include "snymultirtmppublish.h"
 #include <easylogging++.h>
 #include <chrono>
 #include <thread>
 #include <utility>
 namespace app {
-SnyRTMPProxy::SnyRTMPProxy(std::string name, std::shared_ptr<pvd::RtmpStream> rtmp_stream) : threads_(this) {
+SnyMultiRTMPPublish::SnyMultiRTMPPublish(std::string name, std::shared_ptr<pvd::RtmpStream> rtmp_stream) : threads_(this) {
   name_ = std::move(name);
   rtmp_stream_ = std::move(rtmp_stream);
   rtmp_stream_->setRTMPCallback(this);
 }
 
-SnyRTMPProxy::~SnyRTMPProxy() { stop(); }
+SnyMultiRTMPPublish::~SnyMultiRTMPPublish() { stop(); }
 
-void SnyRTMPProxy::start() {
+void SnyMultiRTMPPublish::start() {
   for (int i = 0; i < publish_streams_.size(); i++) {
     threads_.start(i);
   }
 }
 
-void SnyRTMPProxy::stop() {
+void SnyMultiRTMPPublish::stop() {
   threads_.stopAll();
   cv_.notify_all();
   threads_.waitAll();
 }
 
-int SnyRTMPProxy::onThreadProc(int id) {
+int SnyMultiRTMPPublish::onThreadProc(int id) {
   std::string publish_name = publish_streams_[id].publish_name_;
   std::string publish_url = publish_streams_[id].publish_url_;
   auto rtmp_muxer = createRtmpMuxer(publish_url);
@@ -54,13 +54,13 @@ int SnyRTMPProxy::onThreadProc(int id) {
   return id;
 }
 
-void SnyRTMPProxy::onRtmpAppStreamName(std::string app_name, std::string stream_name) {
+void SnyMultiRTMPPublish::onRtmpAppStreamName(std::string app_name, std::string stream_name) {
   LOG(DEBUG) << "/" << app_name << "/" << stream_name;
   app_name_ = app_name;
   stream_name_ = stream_name;
 }
 
-void SnyRTMPProxy::onTrack(std::map<int32_t, std::shared_ptr<MediaTrack>> tracks) {
+void SnyMultiRTMPPublish::onTrack(std::map<int32_t, std::shared_ptr<MediaTrack>> tracks) {
   tracks_ = tracks;
   auto& streams = cnf_->streams_;
   for (auto& item : cnf_->streams_) {
@@ -76,7 +76,7 @@ void SnyRTMPProxy::onTrack(std::map<int32_t, std::shared_ptr<MediaTrack>> tracks
   start();
 }
 
-void SnyRTMPProxy::onSample(std::shared_ptr<sny::SnyMediaSample> sample) {
+void SnyMultiRTMPPublish::onSample(std::shared_ptr<sny::SnyMediaSample> sample) {
   mutex_.lock();
   for (auto& item : samples) {
     item.second.push_back(sample);
@@ -85,11 +85,11 @@ void SnyRTMPProxy::onSample(std::shared_ptr<sny::SnyMediaSample> sample) {
   cv_.notify_all();
 }
 
-void SnyRTMPProxy::OnDataReceived(const char* data_buff, ssize_t data_size) {
+void SnyMultiRTMPPublish::OnDataReceived(const char* data_buff, ssize_t data_size) {
   rtmp_stream_->OnDataReceived(data_buff, data_size);
 }
 
-std::shared_ptr<RtmpWriter> SnyRTMPProxy::createRtmpMuxer(const std::string& url) {
+std::shared_ptr<RtmpWriter> SnyMultiRTMPPublish::createRtmpMuxer(const std::string& url) {
   auto muxer = std::make_shared<RtmpWriter>();
   muxer->SetPath(url, "flv");
   for (const auto& item : tracks_) {
