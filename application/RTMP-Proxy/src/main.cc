@@ -5,7 +5,7 @@
 #include <iostream>
 #include <map>
 #include <uv11.hpp>
-#include "snyrtmpproxy.h"
+#include "snymultirtmppublish.h"
 #include "snyrtmpproxyconf.h"
 #include "source/rtmp/rtmp_stream.h"
 
@@ -42,7 +42,7 @@ int main(int argc, char** args) {
     }
 
     std::mutex mutex;
-    std::map<std::string, std::shared_ptr<app::SnyRTMPProxy>> rtmp_proxys;
+    std::map<std::string, std::shared_ptr<app::SnyMultiRTMPPublish>> rtmp_proxys;
     uv::EventLoop* loop = uv::EventLoop::DefaultLoop();
     uv::SocketAddr addr("0.0.0.0", rtmp_proxy_cnf->rtmp_port, uv::SocketAddr::Ipv4);
     uv::TcpServer server(loop);
@@ -62,10 +62,9 @@ int main(int argc, char** args) {
       std::string conn_name;
       std::shared_ptr<uv::TcpConnection> tcp_connection_ptr = conn.lock();
       if (tcp_connection_ptr != nullptr) {
-        auto rtmp_stream = std::make_shared<pvd::RtmpStream>(StreamSourceType::Rtmp, 1);
-        rtmp_stream->SetConn(tcp_connection_ptr);
+        auto rtmp_stream = std::make_shared<pvd::RtmpStream>(conn_name);
         conn_name = tcp_connection_ptr->Name();
-        auto rtmp_proxy = std::make_shared<app::SnyRTMPProxy>(conn_name, rtmp_stream);
+        auto rtmp_proxy = std::make_shared<app::SnyMultiRTMPPublish>(conn_name, rtmp_stream);
         rtmp_proxy->setConfigure(rtmp_proxy_cnf);
         rtmp_proxys.insert(std::make_pair(conn_name, rtmp_proxy));
       }
