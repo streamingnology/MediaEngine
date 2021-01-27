@@ -48,24 +48,34 @@ void SnyRTMPServer::stop() {
 void SnyRTMPServer::onRTMPNewConnectCallback(const std::weak_ptr<uv::TcpConnection>& conn) {
   std::shared_ptr<uv::TcpConnection> tcp_connection = conn.lock();
   if (tcp_connection) {
-    LOG(DEBUG) << tcp_connection->Name();
+    auto conn_name = tcp_connection->Name();
+    LOG(DEBUG) << "new connection: " << conn_name;
     auto rtmp_stream = pvd::RtmpStream::Create(tcp_connection->Name());
-    rtmp_stream->start();
+    rtmp_stream->setRTMPCallback(this);
     rtmp_stream->setRTMPSendDataCallback(std::bind(&SnyRTMPServer::onRTMPSendDataCallback, this, std::placeholders::_1,
                                                    std::placeholders::_2, std::placeholders::_3));
+    rtmp_stream->start();
     rtmp_streams_.insert(std::make_pair(tcp_connection->Name(), rtmp_stream));
+    if (new_connect_callback_) {
+      new_connect_callback_(conn, conn_name);
+    }
   }
+  LOG(DEBUG) << "there are " << rtmp_streams_.size() << " input rtmp strems now";
 }
 
 void SnyRTMPServer::onRTMPConnectCloseCallback(const std::weak_ptr<uv::TcpConnection>& conn) {
   std::shared_ptr<uv::TcpConnection> tcp_connection = conn.lock();
   if (tcp_connection) {
     std::string conn_name = tcp_connection->Name();
-    LOG(DEBUG) << conn_name;
+    LOG(DEBUG) << "connection close: " << conn_name;
     rtmp_streams_.erase(conn_name);
+    if (connect_close_callback_) {
+      connect_close_callback_(conn_name);
+    }
   } else {
     LOG(WARNING) << "not found this connection";
   }
+  LOG(DEBUG) << "there are " << rtmp_streams_.size() << " input rtmp strems now";
 }
 
 void SnyRTMPServer::onRTMPMessageReceived(const uv::TcpConnectionPtr& conn, const char* data, ssize_t size) {
@@ -88,5 +98,28 @@ void SnyRTMPServer::onRTMPSendDataCallback(string& conn_name, const char* data, 
     char* p = info.buf;
     delete p;
   });
+}
+
+void SnyRTMPServer::setRTMPNewConnectCallback(const SnyRTMPServer::OnRTMPNewConnectCallback& callback) {
+  new_connect_callback_ = callback;
+}
+void SnyRTMPServer::setRTMPConnectCloseCallback(const SnyRTMPServer::OnRTMPConnectCloseCallback& callback) {
+  connect_close_callback_ = callback;
+}
+
+void SnyRTMPServer::onRtmpAppStreamName(std::string conn_name, std::string app_name, std::string stream_name) {
+  if (source_callback_) {
+    source_callback_->onRtmpAppStreamName(conn_name, app_name, stream_name);
+  }
+}
+void SnyRTMPServer::onTrack(std::string conn_name, std::map<int32_t, std::shared_ptr<MediaTrack>> tracks) {
+  if (source_callback_) {
+    source_callback_->onTrack(conn_name, tracks);
+  }
+}
+void SnyRTMPServer::onSample(std::string conn_name, std::shared_ptr<sny::SnyMediaSample> sample) {
+  if (source_callback_) {
+    source_callback_->onSample(conn_name, sample);
+  }
 }
 }  // namespace sny

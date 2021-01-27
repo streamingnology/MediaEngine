@@ -2,14 +2,23 @@
 #include <core/snydatabuffer.h>
 #include <core/snyeasylogging.h>
 #include <core/snyresults.h>
+#include <csignal>
 #include <iostream>
 #include <map>
-#include <uv11.hpp>
 #include "snymultirtmppublish.h"
+#include "snyrtmpproxy.h"
 #include "snyrtmpproxyconf.h"
-#include "source/rtmp/rtmp_stream.h"
+
+bool g_terminated = false;
+
+void signalHandler(int signal_number) {
+  LOG(WARNING) << "received signal: " << signal_number;
+  g_terminated = true;
+}
 
 int main(int argc, char** args) {
+  signal(SIGINT, signalHandler);
+
   el::Configurations conf("../conf/el.conf");
   el::Loggers::reconfigureAllLoggers(conf);
 
@@ -41,60 +50,18 @@ int main(int argc, char** args) {
       break;
     }
 
-    std::mutex mutex;
     std::map<std::string, std::shared_ptr<app::SnyMultiRTMPPublish>> rtmp_proxys;
-    uv::EventLoop* loop = uv::EventLoop::DefaultLoop();
-    uv::SocketAddr addr("0.0.0.0", rtmp_proxy_cnf->rtmp_port, uv::SocketAddr::Ipv4);
-    uv::TcpServer server(loop);
-    server.setTimeout(60);
-    server.setMessageCallback(
-        [&rtmp_proxys, &mutex](uv::TcpConnectionPtr ptr, const char* data_buff, ssize_t data_size) {
-          mutex.lock();
-          std::string conn_name = ptr->Name();
-          auto iter = rtmp_proxys.find(conn_name);
-          mutex.unlock();
-          if (iter != rtmp_proxys.end()) {
-            iter->second->OnDataReceived(data_buff, data_size);
-          }
-        });
-    server.setNewConnectCallback([&rtmp_proxys, &rtmp_proxy_cnf, &mutex](const std::weak_ptr<uv::TcpConnection>& conn) {
-      mutex.lock();
-      std::string conn_name;
-      std::shared_ptr<uv::TcpConnection> tcp_connection_ptr = conn.lock();
-      if (tcp_connection_ptr != nullptr) {
-        auto rtmp_stream = std::make_shared<pvd::RtmpStream>(conn_name);
-        conn_name = tcp_connection_ptr->Name();
-        auto rtmp_proxy = std::make_shared<app::SnyMultiRTMPPublish>(conn_name, rtmp_stream);
-        rtmp_proxy->setConfigure(rtmp_proxy_cnf);
-        rtmp_proxys.insert(std::make_pair(conn_name, rtmp_proxy));
-      }
-      std::cout << "new conn come from: " + conn_name << std::endl;
-      std::cout << "there are " + std::to_string(rtmp_proxys.size()) + " streams." << std::endl;
-      mutex.unlock();
-    });
-    server.setConnectCloseCallback([&rtmp_proxys, &mutex](const std::weak_ptr<uv::TcpConnection>& conn) {
-      mutex.lock();
-      std::string conn_name;
-      std::shared_ptr<uv::TcpConnection> tcp_connection_ptr = conn.lock();
-      if (tcp_connection_ptr != nullptr) {
-        conn_name = tcp_connection_ptr->Name();
-        auto iter = rtmp_proxys.find(conn_name);
-        if (iter != rtmp_proxys.end()) {
-          rtmp_proxys.erase(iter);
-        }
-      }
-      std::cout << "close conn: " + conn_name << std::endl;
-      std::cout << "there are " + std::to_string(rtmp_proxys.size()) + " streams left." << std::endl;
-      mutex.unlock();
-    });
-
-    int ret = server.bindAndListen(addr);
-    if (ret != 0) {
-      LOG(ERROR) << "bind and listen on " << rtmp_proxy_cnf->rtmp_port << " failed";
+    auto rtmp_proxy = std::make_shared<app::SnyRTMPProxy>();
+    rtmp_proxy->setConfigure(rtmp_proxy_cnf);
+    result = rtmp_proxy->start();
+    if (sny::SnySuccess != result) {
+      LOG(ERROR) << "start rtmp proxy failed";
       break;
     }
-    loop->run();
     success = true;
+    while (!g_terminated) {
+      std::this_thread::sleep_for(100ms);
+    }
   } while (false);
 
   if (byte_stream) {

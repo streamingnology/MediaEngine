@@ -68,7 +68,7 @@ RtmpStream::RtmpStream(std::string conn_name) : threads_(this) {
   conn_name_ = conn_name;
 }
 
-RtmpStream::~RtmpStream() {}
+RtmpStream::~RtmpStream() { stop(); }
 
 bool RtmpStream::OnDataReceived(const char *data_buffer, int data_size) {
   mutex_.lock();
@@ -1415,12 +1415,12 @@ bool RtmpStream::SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample) {
     if (track_info_sent_ && call_back_) {
       std::string app_name = _app_name.CStr();
       std::string stream_name = _stream_name.CStr();
-      call_back_->onRtmpAppStreamName(app_name, stream_name);
-      call_back_->onTrack(_tracks);
+      call_back_->onRtmpAppStreamName(conn_name_, app_name, stream_name);
+      call_back_->onTrack(conn_name_, _tracks);
     }
   }
   if (track_info_sent_ && call_back_) {
-    call_back_->onSample(std::move(media_sample));
+    call_back_->onSample(conn_name_, std::move(media_sample));
   }
   return true;
 }

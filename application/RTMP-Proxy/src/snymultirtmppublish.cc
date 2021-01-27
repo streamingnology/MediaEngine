@@ -8,11 +8,7 @@
 #include <thread>
 #include <utility>
 namespace app {
-SnyMultiRTMPPublish::SnyMultiRTMPPublish(std::string name, std::shared_ptr<pvd::RtmpStream> rtmp_stream) : threads_(this) {
-  name_ = std::move(name);
-  rtmp_stream_ = std::move(rtmp_stream);
-  rtmp_stream_->setRTMPCallback(this);
-}
+SnyMultiRTMPPublish::SnyMultiRTMPPublish(std::string name) : threads_(this) { name_ = std::move(name); }
 
 SnyMultiRTMPPublish::~SnyMultiRTMPPublish() { stop(); }
 
@@ -54,13 +50,13 @@ int SnyMultiRTMPPublish::onThreadProc(int id) {
   return id;
 }
 
-void SnyMultiRTMPPublish::onRtmpAppStreamName(std::string app_name, std::string stream_name) {
+void SnyMultiRTMPPublish::onRtmpAppStreamName(std::string conn_name, std::string app_name, std::string stream_name) {
   LOG(DEBUG) << "/" << app_name << "/" << stream_name;
   app_name_ = app_name;
   stream_name_ = stream_name;
 }
 
-void SnyMultiRTMPPublish::onTrack(std::map<int32_t, std::shared_ptr<MediaTrack>> tracks) {
+void SnyMultiRTMPPublish::onTrack(std::string conn_name, std::map<int32_t, std::shared_ptr<MediaTrack>> tracks) {
   tracks_ = tracks;
   auto& streams = cnf_->streams_;
   for (auto& item : cnf_->streams_) {
@@ -76,17 +72,13 @@ void SnyMultiRTMPPublish::onTrack(std::map<int32_t, std::shared_ptr<MediaTrack>>
   start();
 }
 
-void SnyMultiRTMPPublish::onSample(std::shared_ptr<sny::SnyMediaSample> sample) {
+void SnyMultiRTMPPublish::onSample(std::string conn_name, std::shared_ptr<sny::SnyMediaSample> sample) {
   mutex_.lock();
   for (auto& item : samples) {
     item.second.push_back(sample);
   }
   mutex_.unlock();
   cv_.notify_all();
-}
-
-void SnyMultiRTMPPublish::OnDataReceived(const char* data_buff, ssize_t data_size) {
-  rtmp_stream_->OnDataReceived(data_buff, data_size);
 }
 
 std::shared_ptr<RtmpWriter> SnyMultiRTMPPublish::createRtmpMuxer(const std::string& url) {
