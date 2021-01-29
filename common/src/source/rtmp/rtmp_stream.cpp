@@ -150,7 +150,7 @@ void RtmpStream::OnAmfConnect(const std::shared_ptr<const RtmpChunkHeader> &head
       //}
     } else {
       
-      auto log = ov::String::FormatString("Could not obtain tcUrl from the RTMP stream: [%s]", _app_name);
+      auto log = ov::String::FormatString("Could not obtain tcUrl from the RTMP stream: [%s]", _app_name.CStr());
       LOG(ERROR) << log;
 
       // TODO(dimiden): If tcUrl is not provided, it's not possible to determine which VHost the request was received,
