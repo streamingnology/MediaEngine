@@ -35,7 +35,7 @@ class BitReader {
   }
 
   ov::String ReadString(size_t length) {
-    length = std::min(length, BytesReamined());
+    length = std::min<size_t>(length, BytesReamined());
 
     ov::String str(reinterpret_cast<const char*>(_position), length);
 

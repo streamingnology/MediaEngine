@@ -8,7 +8,7 @@
 namespace app {
 SnyRTMPProxy::SnyRTMPProxy() {}
 
-SnyRTMPProxy::~SnyRTMPProxy() {}
+SnyRTMPProxy::~SnyRTMPProxy() { stop(); }
 
 sny::SnyResult SnyRTMPProxy::start() {
   auto loop = std::make_shared<uv::EventLoop>();

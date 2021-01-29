@@ -26,7 +26,7 @@ class Url {
 
   const ov::String &Host() const { return _host; }
 
-  void SetPort(uint32_t port) { _port = port; }
+  void SetConnPort(uint32_t port) { _port = port; }
 
   const uint32_t &Port() const { return _port; }
 

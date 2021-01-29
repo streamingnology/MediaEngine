@@ -1124,7 +1124,7 @@ AmfObject *AmfObjectArray::GetObject(int index) {
     return nullptr;
   }
 
-  return property_pair->_property->GetObject();
+  return property_pair->_property->GetAmfObject();
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -9,7 +9,7 @@
 #pragma once
 #include "core/string.h"
 enum class RtmpChunkType : uint8_t { T0 = 0b00000000, T1 = 0b01000000, T2 = 0b10000000, T3 = 0b11000000 };
-
+enum RtmpChunkMsgSize {T0_SIZE = 11U, T1_SIZE = 7U, T2_SIZE = 3U, T3_SIZE = 0U};
 #pragma pack(push, 1)
 struct RtmpChunkHeader {
   RtmpChunkHeader() { ::memset(&header, 0, sizeof(header)); }

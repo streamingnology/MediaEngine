@@ -550,7 +550,7 @@ std::vector<String> String::Split(const char *string, const char *separator, siz
   }
 
   size_t token_count = 0;
-  max_count = std::max(max_count, 1UL);
+  max_count = std::max<size_t>(max_count, 1UL);
 
   while (token_count < max_count) {
     last = ::strstr(string, separator);

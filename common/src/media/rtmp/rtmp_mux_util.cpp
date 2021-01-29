@@ -123,19 +123,19 @@ int RtmpMuxUtil::GetChunkHeaderSize(RtmpChunkType chunk_type, uint32_t chunk_str
 
   switch (chunk_type) {
     case RtmpChunkType::T0:
-      message_header_size = sizeof(RtmpChunkHeader::header.type_0);
+      message_header_size = RtmpChunkMsgSize::T0_SIZE;//sizeof(RtmpChunkHeader::header.type_0);
       break;
 
     case RtmpChunkType::T1:
-      message_header_size = sizeof(RtmpChunkHeader::header.type_1);
+      message_header_size = RtmpChunkMsgSize::T1_SIZE;//sizeof(RtmpChunkHeader::header.type_1);
       break;
 
     case RtmpChunkType::T2:
-      message_header_size = sizeof(RtmpChunkHeader::header.type_2);
+      message_header_size = RtmpChunkMsgSize::T2_SIZE;//sizeof(RtmpChunkHeader::header.type_2);
       break;
 
     case RtmpChunkType::T3:
-      message_header_size = sizeof(RtmpChunkHeader::header.type_3);
+      message_header_size = RtmpChunkMsgSize::T3_SIZE;//sizeof(RtmpChunkHeader::header.type_3);
       break;
   }
 
@@ -311,7 +311,7 @@ int RtmpMuxUtil::GetChunkHeaderRaw(std::shared_ptr<RtmpChunkHeader> &chunk_heade
   // msg header 만들기
   switch (chunk_header->basic_header.format_type) {
     case RtmpChunkType::T0: {
-      message_header_size = sizeof(RtmpChunkHeader::header.type_0);
+      message_header_size = RtmpChunkMsgSize::T0_SIZE;  // sizeof(RtmpChunkHeader::header.type_0);
 
       // timestamp
       if (!extend_type)

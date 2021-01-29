@@ -228,7 +228,8 @@ RtmpChunkParser::ParseResult RtmpChunkParser::ParseMessageHeader(ov::ByteStream 
   // Obtain header size to move the offset of raw_data_pos
   switch (_current_chunk_header->basic_header.format_type) {
     case RtmpChunkType::T0:
-      _current_chunk_header->message_header_size = sizeof(RtmpChunkHeader::header.type_0);
+      _current_chunk_header->message_header_size =
+          RtmpChunkMsgSize::T0_SIZE;  // sizeof(RtmpChunkHeader::header.type_0);
 
       if (stream.IsRemained(_current_chunk_header->message_header_size) == false) {
         return ParseResult::NeedMoreData;
@@ -248,7 +249,8 @@ RtmpChunkParser::ParseResult RtmpChunkParser::ParseMessageHeader(ov::ByteStream 
       break;
 
     case RtmpChunkType::T1:
-      _current_chunk_header->message_header_size = sizeof(RtmpChunkHeader::header.type_1);
+      _current_chunk_header->message_header_size =
+          RtmpChunkMsgSize::T1_SIZE;  // sizeof(RtmpChunkHeader::header.type_1);
 
       if (stream.IsRemained(_current_chunk_header->message_header_size) == false) {
         return ParseResult::NeedMoreData;
@@ -267,7 +269,8 @@ RtmpChunkParser::ParseResult RtmpChunkParser::ParseMessageHeader(ov::ByteStream 
       break;
 
     case RtmpChunkType::T2:
-      _current_chunk_header->message_header_size = sizeof(RtmpChunkHeader::header.type_2);
+      _current_chunk_header->message_header_size =
+          RtmpChunkMsgSize::T2_SIZE;  // sizeof(RtmpChunkHeader::header.type_2);
 
       if (stream.IsRemained(_current_chunk_header->message_header_size) == false) {
         return ParseResult::NeedMoreData;
@@ -290,7 +293,7 @@ RtmpChunkParser::ParseResult RtmpChunkParser::ParseMessageHeader(ov::ByteStream 
 
       // The stream ID, message length and timestamp delta fields are not present;
       // chunks of this type take values from the preceding chunk for the same Chunk Stream ID
-      _current_chunk_header->payload_size = 0LL;
+      _current_chunk_header->payload_size = RtmpChunkMsgSize::T3_SIZE; //0LL;
 
       break;
 

@@ -92,7 +92,7 @@ struct FragmentationHeader {
   size_t GetCount() const {
     OV_ASSERT2(fragmentation_offset.size() == fragmentation_length.size());
 
-    return std::min(fragmentation_offset.size(), fragmentation_length.size());
+    return std::min<size_t>(fragmentation_offset.size(), fragmentation_length.size());
   }
 
   bool operator==(const FragmentationHeader &other) const {

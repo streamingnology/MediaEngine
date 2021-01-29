@@ -7,8 +7,8 @@
 //
 //==============================================================================
 #pragma once
-#include <core/snyconstants.h>
-#include <media/snymediasample.h>
+#include "core/snyconstants.h"
+#include "media/snymediasample.h"
 #include <chrono>
 #include <deque>
 #include <iomanip>
@@ -16,7 +16,6 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include <uv11.hpp>
 #include "core/snythreads.h"
 #include "core/url.h"
 #include "media/common_types.h"

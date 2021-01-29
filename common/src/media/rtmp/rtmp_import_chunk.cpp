@@ -317,7 +317,7 @@ std::shared_ptr<const RtmpMessage> RtmpImportChunk::FinalizeMessage(
       payload_size -= basic_header_size + extended_header_size;
     }
 
-    size_t read_size = std::min(_chunk_size, payload_size);
+    size_t read_size = std::min<size_t>(_chunk_size, payload_size);
 
     if (payload_size < read_size) {
       logte("Not enough data: %zu bytes, expected: %zu bytes", payload_size, read_size);

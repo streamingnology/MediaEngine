@@ -131,7 +131,7 @@ class AmfProperty : public AmfUtil {
 
   AmfArray *GetArray() { return _array; }
 
-  AmfObject *GetObject() { return _object; }
+  AmfObject *GetAmfObject() { return _object; }
 
  private:
   void _Initialize();

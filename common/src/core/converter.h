@@ -12,9 +12,10 @@
 #include <cinttypes>
 #include <cmath>
 #include <ctime>
+#include <string>
 #include "memory_utilities.h"
 #include "string.h"
-
+#include "snyplatform.h"
 namespace ov {
 class Converter {
  public:
@@ -43,7 +44,12 @@ class Converter {
   static ov::String ToString(const std::chrono::system_clock::time_point &tp) {
     std::time_t t = std::chrono::system_clock::to_time_t(tp);
     char buffer[32]{0};
+#if defined(Q_OS_WINDOWS)
+    //TODO: not test yet
+    ::ctime_s(buffer, sizeof(buffer), &t);
+#else
     ::ctime_r(&t, buffer);
+#endif
     // Ensure null-terminated
     buffer[OV_COUNTOF(buffer) - 1] = '\0';
 

@@ -111,7 +111,7 @@ void RtmpStream::OnAmfConnect(const std::shared_ptr<const RtmpChunkHeader> &head
   double object_encoding = 0.0;
 
   if (document.GetProperty(2) != nullptr && document.GetProperty(2)->GetType() == AmfDataType::Object) {
-    AmfObject *object = document.GetProperty(2)->GetObject();
+    AmfObject *object = document.GetProperty(2)->GetAmfObject();
     int32_t index;
 
     // object encoding
@@ -149,7 +149,9 @@ void RtmpStream::OnAmfConnect(const std::shared_ptr<const RtmpChunkHeader> &head
       //	return;
       //}
     } else {
-      logtw("Could not obtain tcUrl from the RTMP stream: [%s]", _app_name);
+      
+      auto log = ov::String::FormatString("Could not obtain tcUrl from the RTMP stream: [%s]", _app_name);
+      LOG(ERROR) << log;
 
       // TODO(dimiden): If tcUrl is not provided, it's not possible to determine which VHost the request was received,
       // so it does not work properly.
@@ -161,22 +163,22 @@ void RtmpStream::OnAmfConnect(const std::shared_ptr<const RtmpChunkHeader> &head
   }
 
   if (!SendWindowAcknowledgementSize(RTMP_DEFAULT_ACKNOWNLEDGEMENT_SIZE)) {
-    logte("SendWindowAcknowledgementSize Fail");
+    LOG(ERROR) << ("SendWindowAcknowledgementSize Fail");
     return;
   }
 
   if (!SendSetPeerBandwidth(_peer_bandwidth)) {
-    logte("SendSetPeerBandwidth Fail");
+    LOG(ERROR) << ("SendSetPeerBandwidth Fail");
     return;
   }
 
   if (!SendStreamBegin()) {
-    logte("SendStreamBegin Fail");
+    LOG(ERROR) << ("SendStreamBegin Fail");
     return;
   }
 
   if (!SendAmfConnectResult(header->basic_header.stream_id, transaction_id, object_encoding)) {
-    logte("SendAmfConnectResult Fail");
+    LOG(ERROR) << ("SendAmfConnectResult Fail");
     return;
   }
 }
@@ -184,7 +186,7 @@ void RtmpStream::OnAmfConnect(const std::shared_ptr<const RtmpChunkHeader> &head
 void RtmpStream::OnAmfCreateStream(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document,
                                    double transaction_id) {
   if (!SendAmfCreateStreamResult(header->basic_header.stream_id, transaction_id)) {
-    logte("SendAmfCreateStreamResult Fail");
+    LOG(ERROR) << ("SendAmfCreateStreamResult Fail");
     return;
   }
 }
@@ -195,7 +197,7 @@ void RtmpStream::OnAmfFCPublish(const std::shared_ptr<const RtmpChunkHeader> &he
       document.GetProperty(3)->GetType() == AmfDataType::String) {
     // TODO: check if the chunk stream id is already exist, and generates new rtmp_stream_id and client_id.
     if (!SendAmfOnFCPublish(header->basic_header.stream_id, _rtmp_stream_id, _client_id)) {
-      logte("SendAmfOnFCPublish Fail");
+      LOG(ERROR) << ("SendAmfOnFCPublish Fail");
       return;
     }
 
@@ -219,7 +221,7 @@ void RtmpStream::OnAmfFCPublish(const std::shared_ptr<const RtmpChunkHeader> &he
         _url->SetPort(port);
       }
        */
-      _url->SetPort(836);
+      _url->SetConnPort(836);
     }
 
     _stream_name = _url->Stream();
@@ -252,7 +254,7 @@ void RtmpStream::OnAmfPublish(const std::shared_ptr<const RtmpChunkHeader> &head
           _url->SetPort(port);
         }
          */
-        _url->SetPort(836);
+        _url->SetConnPort(836);
         //_url->SetPort(_remote->GetLocalAddress()->Port());
       }
 
@@ -261,7 +263,7 @@ void RtmpStream::OnAmfPublish(const std::shared_ptr<const RtmpChunkHeader> &head
 
       CheckSignedPolicy();
     } else {
-      logte("OnPublish - Publish Name None");
+      LOG(ERROR) << ("OnPublish - Publish Name None");
 
       // Reject
       SendAmfOnStatus(header->basic_header.stream_id, _rtmp_stream_id, (char *)"error",
@@ -275,14 +277,14 @@ void RtmpStream::OnAmfPublish(const std::shared_ptr<const RtmpChunkHeader> &head
 
   // stream begin 전송
   if (!SendStreamBegin()) {
-    logte("SendStreamBegin Fail");
+    LOG(ERROR) << ("SendStreamBegin Fail");
     return;
   }
 
   // 시작 상태 값 전송
   if (!SendAmfOnStatus((uint32_t)_chunk_stream_id, _rtmp_stream_id, (char *)"status", (char *)"NetStream.Publish.Start",
                        (char *)"Publishing", _client_id)) {
-    logte("SendAmfOnStatus Fail");
+    LOG(ERROR) << ("SendAmfOnStatus Fail");
     return;
   }
 }
@@ -313,7 +315,7 @@ bool RtmpStream::OnAmfMetaData(const std::shared_ptr<const RtmpChunkHeader> &hea
 
   // object encoding 얻기
   if (document.GetProperty(object_index)->GetType() == AmfDataType::Object) {
-    object = (AmfObjectArray *)(document.GetProperty(object_index)->GetObject());
+    object = (AmfObjectArray *)(document.GetProperty(object_index)->GetAmfObject());
   } else {
     object = (AmfObjectArray *)(document.GetProperty(object_index)->GetArray());
   }
@@ -427,9 +429,10 @@ bool RtmpStream::OnAmfMetaData(const std::shared_ptr<const RtmpChunkHeader> &hea
 
   if (video_codec_type == RtmpCodecType::H264 && audio_codec_type == RtmpCodecType::AAC) {
   } else {
-    logtw("AmfMeta has incompatible codec information. - stream(%s/%s) id(%u/%u) video(%s) audio(%s)",
-          _vhost_app_name.CStr(), _stream_name.CStr(), _app_id, GetId(), GetCodecString(video_codec_type).CStr(),
+    auto log = ov::String::FormatString("AmfMeta has incompatible codec information. - stream(%s/%s) id() video(%s) audio(%s)",
+          _app_name.CStr(), _stream_name.CStr(), GetCodecString(video_codec_type).CStr(),
           GetCodecString(audio_codec_type).CStr());
+    LOG(ERROR) << log;
   }
 
   _media_info->video_codec_type = video_codec_type;
@@ -449,7 +452,8 @@ bool RtmpStream::OnAmfMetaData(const std::shared_ptr<const RtmpChunkHeader> &hea
 
 void RtmpStream::OnAmfDeleteStream(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document,
                                    double transaction_id) {
-  logtd("Delete Stream - stream(%s/%s) id(%u/%u)", _vhost_app_name.CStr(), _stream_name.CStr(), _app_id, GetId());
+  auto log = ov::String::FormatString("Delete Stream - stream(%s/%s) id()", _app_name.CStr(), _stream_name.CStr());
+  LOG(WARNING) << log;
 
   _media_info->video_stream_coming = false;
   _media_info->audio_stream_coming = false;
@@ -495,35 +499,38 @@ off_t RtmpStream::ReceiveHandshakePacket(const std::shared_ptr<const ov::Data> &
   int32_t process_size = 0;
   switch (_handshake_state) {
     case RtmpHandshakeState::Uninitialized:
-      logtd("Handshaking is started. Trying to parse for C0/C1 packets...");
+      LOG(DEBUG)<<("Handshaking is started. Trying to parse for C0/C1 packets...");
       process_size = (sizeof(uint8_t) + RTMP_HANDSHAKE_PACKET_SIZE);
       break;
 
     case RtmpHandshakeState::S2:
-      logtd("Trying to parse for C2 packet...");
+      LOG(DEBUG)<<("Trying to parse for C2 packet...");
       process_size = (RTMP_HANDSHAKE_PACKET_SIZE);
       break;
 
     default:
-      logte("Failed to handshake: state: %d", static_cast<int32_t>(_handshake_state));
+      auto log = ov::String::FormatString("Failed to handshake: state: %d", static_cast<int32_t>(_handshake_state));
+      LOG(ERROR) << log;
       return -1LL;
   }
 
   if (static_cast<int32_t>(data->GetLength()) < process_size) {
     // Need more data
-    logtd("Need more data: data: %zu bytes, expected: %d bytes", data->GetLength(), process_size);
+    auto log = ov::String::FormatString("Need more data: data: %zu bytes, expected: %d bytes", data->GetLength(), process_size);
+    LOG(DEBUG) << log;
     return 0LL;
   }
 
   if (_handshake_state == RtmpHandshakeState::Uninitialized) {
-    logtd("C0/C1 packets are arrived");
+    LOG(DEBUG) << ("C0/C1 packets are arrived");
 
     char version = data->At(0);
 
-    logtd("Trying to check RTMP version (%d)...", RTMP_HANDSHAKE_VERSION);
-
+    auto log = ov::String::FormatString("Trying to check RTMP version (%d)...", RTMP_HANDSHAKE_VERSION);
+    LOG(DEBUG) << log;
     if (version != RTMP_HANDSHAKE_VERSION) {
-      logte("Invalid RTMP version: %d, expected: %d", version, RTMP_HANDSHAKE_VERSION);
+      auto log = ov::String::FormatString("Invalid RTMP version: %d, expected: %d", version, RTMP_HANDSHAKE_VERSION);
+	  LOG(ERROR) << log;
       return -1LL;
     }
 
@@ -1452,7 +1459,9 @@ int RtmpStream::onThreadProc(int id) {
           _full_url.CStr(), _remained_data->GetLength(), RTMP_MAX_PACKET_SIZE);
       LOG(WARNING) << log;
     }
-    // logtp("Trying to parse data\n%s", _remained_data->Dump(_remained_data->GetLength()).CStr());
+    
+    //auto log = ov::String::FormatString("Trying to parse data\n%s", _remained_data->ToHexString().CStr());
+    //LOG(DEBUG) << log;
     while (true) {
       int32_t process_size = 0;
       if (_handshake_state == RtmpHandshakeState::Complete) {
@@ -1463,6 +1472,7 @@ int RtmpStream::onThreadProc(int id) {
       if (process_size < 0) {
         auto log = ov::String::FormatString("Could not parse RTMP packet: [%s], size: %zu bytes, returns: %d",
                                             _full_url.CStr(), _remained_data->GetLength(), process_size);
+        LOG(WARNING) << log;
         break;
       } else if (process_size == 0) {
         // Need more data

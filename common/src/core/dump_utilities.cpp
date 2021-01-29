@@ -7,13 +7,20 @@
 //
 //==============================================================================
 #include "dump_utilities.h"
+#include "snyplatform.h"
+#ifndef Q_OS_WINDOWS
 #include <cxxabi.h>
+#endif  // !(Q_OS_WINDOWS)
 #include <cctype>
 #include <cinttypes>
 #include <cmath>
 #include "data.h"
 #define __STDC_FORMAT_MACROS
 namespace ov {
+#ifdef Q_OS_WINDOWS
+//TODO: finish this function
+String Demangle(const char *func) { return ""; }
+#else
 String Demangle(const char *func) {
   int status;
   char *demangled = abi::__cxa_demangle(func, nullptr, nullptr, &status);
@@ -28,7 +35,7 @@ String Demangle(const char *func) {
 
   return std::move(result);
 }
-
+#endif  // Q_OS_WINDOWS
 // Dump utilities
 // TODO(dimiden): Need to optimize this
 String ToHexStringWithDelimiter(const void *data, size_t length, char delimiter) {
@@ -76,7 +83,7 @@ String Dump(const void *data, size_t length, const char *title, off_t offset, si
   max_bytes = std::min(length - static_cast<size_t>(offset), max_bytes);
 
   // Dump up to 1MB
-  int dump_bytes = (int)std::min(max_bytes, (1024UL * 1024UL));
+  int dump_bytes = (int)std::min<size_t>(max_bytes, (1024UL * 1024UL));
 
   if (title == nullptr) {
     title = "Memory dump of";

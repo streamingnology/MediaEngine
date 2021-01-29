@@ -58,7 +58,7 @@ class ByteStream {
   /// @return 읽은 데이터 개수 (0 ~ count 사이)
   template <typename T = uint8_t>
   inline size_t Peek(T *buffer, size_t count) {
-    size_t peek_count = std::min(Remained<T>(), count);
+    size_t peek_count = std::min<size_t>(Remained<T>(), count);
 
     if (peek_count > 0) {
       if (buffer != nullptr) {
@@ -442,11 +442,11 @@ class ByteStream {
   /// @return 개수
   template <typename T = uint8_t>
   inline size_t Remained() const noexcept {
-    ssize_t remained_bytes = (_read_only_data->GetLength() - _offset);
+    size_t remained_bytes = (_read_only_data->GetLength() - _offset);
 
     OV_ASSERT(remained_bytes >= 0, "_data is changed while using byte stream");
 
-    remained_bytes = std::max(0L, remained_bytes);
+    remained_bytes = std::max<size_t>(0L, remained_bytes);
 
     return remained_bytes / sizeof(T);
   }

@@ -7,27 +7,8 @@
 //
 //==============================================================================
 #pragma once
-
-#if defined(__APPLE__)
-#include <libkern/OSByteOrder.h>
-#include <machine/endian.h>
-
-#define htole16(x) OSSwapHostToLittleInt16(x)
-#define htole32(x) OSSwapHostToLittleInt32(x)
-#define htole64(x) OSSwapHostToLittleInt64(x)
-#define le16toh(x) OSSwapLittleToHostConstInt16(x)
-#define le32toh(x) OSSwapLittleToHostConstInt32(x)
-#define le64toh(x) OSSwapLittleToHostConstInt64(x)
-#define htobe16(x) OSSwapHostToBigInt16(x)
-#define htobe32(x) OSSwapHostToBigInt32(x)
-#define htobe64(x) OSSwapHostToBigInt64(x)
-#define be16toh(x) OSSwapBigToHostConstInt16(x)
-#define be32toh(x) OSSwapBigToHostConstInt32(x)
-#define be64toh(x) OSSwapBigToHostConstInt64(x)
-#else
-#include <arpa/inet.h>
-#include <endian.h>
-#endif
+#include "snyportableendian.h"
+#include "snyplatform.h"
 #include <cinttypes>
 
 #if (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
@@ -38,6 +19,19 @@
 #error Could not identify byte ordering
 #endif
 
+#if defined(Q_OS_WINDOWS)
+struct uint24_t {
+#pragma pack(push, 1)
+  uint24_t(uint32_t value) noexcept {
+    data[0] = ((unsigned char*)&value)[0];
+    data[1] = ((unsigned char*)&value)[1];
+    data[2] = ((unsigned char*)&value)[2];
+  }
+  unsigned char data[3];
+  inline operator uint32_t() const noexcept { return (data[2] << 16) | (data[1] << 8) | data[0]; }
+};
+#pragma pack(pop)
+#else
 #pragma pack(push, 1)
 struct uint24_t {
   uint24_t(uint32_t value) noexcept : data(value) {}
@@ -50,6 +44,7 @@ struct uint24_t {
   inline operator uint32_t() const noexcept { return data; }
 };
 #pragma pack(pop)
+#endif
 
 // OV_SELECT_BY_ENDIAN(call_when_little_endian, call_when_big_endian) 정의
 #if OV_IS_LITTLE_ENDIAN

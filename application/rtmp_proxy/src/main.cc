@@ -1,6 +1,5 @@
 #include <Ap4FileByteStream.h>
 #include <core/snydatabuffer.h>
-#include <core/snyeasylogging.h>
 #include <core/snyresults.h>
 #include <csignal>
 #include <iostream>
@@ -8,6 +7,7 @@
 #include "snymultirtmppublish.h"
 #include "snyrtmpproxy.h"
 #include "snyrtmpproxyconf.h"
+#include <core/snyeasylogging.h>
 
 bool g_terminated = false;
 
