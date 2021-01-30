@@ -33,17 +33,18 @@
 
 #streamingnology
 .DS_Store
-common/3rd/download
-common/build/
+common/3rd/download/*
+!common/3rd/download/*.bat
+common/3rd/build/
+common/build
 common/cmake-build-debug
-build/
 
 application/MediaServer/.idea
 application/MediaServer/build
 application/MediaServer/cmake-build-debug
 application/MediaServer/log/
 
-application/RTMP-Proxy/.idea
-application/RTMP-Proxy/build
-application/RTMP-Proxy/cmake-build-debug
-application/RTMP-Proxy/log/
+application/rtmp_proxy/.idea
+application/rtmp_proxy/build
+application/rtmp_proxy/cmake-build-debug
+application/rtmp_proxy/log/
