@@ -5,8 +5,8 @@
 
 set CURDIR=%CD%
 
-set INSTALL_DIR_DEBUG=%CURDIR%\..\bento4\Debug
-set INSTALL_DIR_RELEASE=%CURDIR%\..\bento4\Release
+set INSTALL_DIR_DEBUG=%CURDIR%\..\build\bento4\Debug
+set INSTALL_DIR_RELEASE=%CURDIR%\..\build\bento4\Release
 set AP4_ROOT=%CURDIR%\Bento4-1.5.1-629
 set SOURCE_ROOT=%AP4_ROOT%\Source\C++
 set BUILD_TARGET_DIR=%AP4_ROOT%\Build\Targets\x86_64-microsoft-win32-vs2015\x64

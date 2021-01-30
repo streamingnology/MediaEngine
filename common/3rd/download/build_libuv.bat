@@ -2,12 +2,12 @@
 :: create libuv-1.40.0\build
 :: cd libuv-1.40.0\build and cmake ..
 :: build Debug and Release (x64)
-:: copy libuv-1.40.0\build\Debug and libuv-1.40.0\build\Release to 
+:: run this script 
 
 set CURDIR=%CD%
 set LIBUV_DIR=%CURDIR%\libuv-1.40.0
-set INSTALL_DIR_DEBUG=%CURDIR%\..\libuv\Debug
-set INSTALL_DIR_RELEASE=%CURDIR%\..\libuv\Release
+set INSTALL_DIR_DEBUG=%CURDIR%\..\build\libuv\Debug
+set INSTALL_DIR_RELEASE=%CURDIR%\..\build\libuv\Release
 
 MD %INSTALL_DIR_DEBUG%\include
 MD %INSTALL_DIR_DEBUG%\lib

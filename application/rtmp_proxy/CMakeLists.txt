@@ -24,24 +24,11 @@ IF (WIN32)
   ENDIF()
 ENDIF()
 
-SET(VS_DIR ".")
-IF (WIN32)
-    MESSAGE(STATUS "Now is windows")
-    SET(VS_DIR "win")
-ELSEIF (APPLE)
-    MESSAGE(STATUS "Now is Apple systens.")
-ELSEIF (UNIX)
-    MESSAGE(STATUS "Now is UNIX-like OS's.")
-ELSE()
-    MESSAGE(FATAL_ERROR  "Unkown OS")
-ENDIF ()
-
 # Variables
 SET(RTMPPROXY_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 SET(COMMON ${RTMPPROXY_DIR}/../../common)
 SET(COMMON_SRC ${RTMPPROXY_DIR}/../../common/src)
-SET(THIRD_BUILD_DIR ${RTMPPROXY_DIR}/../../common/3rd/build/${VS_DIR})
-
+SET(THIRD_BUILD_DIR ${RTMPPROXY_DIR}/../../common/3rd/build)
 
 #Bento4
 INCLUDE_DIRECTORIES(${THIRD_BUILD_DIR}/Bento4/${BUILD_MODE_DIR}/include/MetaData)
