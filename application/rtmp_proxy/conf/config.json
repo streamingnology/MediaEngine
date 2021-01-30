@@ -7,20 +7,20 @@
       "application_name":"live",
       "stream_name":"alpes",
       "publish_to":[
-        { "publish_name":"publish_name_1", "publish_url":"rtmp://192.168.1.252:1935/app/alpes_1" },
-        { "publish_name":"publish_name_2", "publish_url":"rtmp://192.168.1.252:1935/app/alpes_2" },
-        { "publish_name":"publish_name_3", "publish_url":"rtmp://192.168.1.252:1935/app/alpes_3" },
-        { "publish_name":"publish_name_4", "publish_url":"rtmp://192.168.1.252:1935/app/alpes_4" }
+        { "publish_name":"publish_name_1", "publish_url":"rtmp://192.168.1.252:1937/app/alpes_1" },
+        { "publish_name":"publish_name_2", "publish_url":"rtmp://192.168.1.252:1937/app/alpes_2" },
+        { "publish_name":"publish_name_3", "publish_url":"rtmp://192.168.1.252:1937/app/alpes_3" },
+        { "publish_name":"publish_name_4", "publish_url":"rtmp://192.168.1.252:1937/app/alpes_4" }
       ]
     },
     {
       "application_name":"live",
       "stream_name":"travel_europe",
       "publish_to":[
-        { "publish_name":"publish_name_1", "publish_url":"rtmp://192.168.1.252:1935/app/travel_europe_1" },
-        { "publish_name":"publish_name_2", "publish_url":"rtmp://192.168.1.252:1935/app/travel_europe_2" },
-        { "publish_name":"publish_name_3", "publish_url":"rtmp://192.168.1.252:1935/app/travel_europe_3" },
-        { "publish_name":"publish_name_4", "publish_url":"rtmp://192.168.1.252:1935/app/travel_europe_4" }
+        { "publish_name":"publish_name_1", "publish_url":"rtmp://192.168.1.252:1937/app/travel_europe_1" },
+        { "publish_name":"publish_name_2", "publish_url":"rtmp://192.168.1.252:1937/app/travel_europe_2" },
+        { "publish_name":"publish_name_3", "publish_url":"rtmp://192.168.1.252:1937/app/travel_europe_3" },
+        { "publish_name":"publish_name_4", "publish_url":"rtmp://192.168.1.252:1937/app/travel_europe_4" }
       ]
     }
   ]

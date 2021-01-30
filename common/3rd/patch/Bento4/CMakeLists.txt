@@ -33,8 +33,7 @@ else()
   set(AP4_SOURCES ${AP4_SOURCES} ${SOURCE_SYSTEM}/Posix/Ap4PosixRandom.cpp)
 endif()
 
-add_library(ap4 SHARED ${AP4_SOURCES})
-add_library(ap4_a STATIC ${AP4_SOURCES})
+add_library(Bento4 SHARED ${AP4_SOURCES})
 
 # Includes
 include_directories(
@@ -44,7 +43,7 @@ include_directories(
   ${SOURCE_METADATA}
 )
 
-install(TARGETS ap4 ap4_a
+install(TARGETS Bento4
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
