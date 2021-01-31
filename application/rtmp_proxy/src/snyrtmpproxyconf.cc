@@ -4,12 +4,12 @@
  */
 #include "snyrtmpproxyconf.h"
 #include <core/snydatabuffer.h>
+#include <core/snyeasylogging.h>
+#include <rapidjson/document.h>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <rapidjson/document.h>
-#include <core/snyeasylogging.h>
 
 namespace app {
 std::shared_ptr<SnyRTMPProxyConf> parse(sny::SnyDataBuffer& cnf_json) {

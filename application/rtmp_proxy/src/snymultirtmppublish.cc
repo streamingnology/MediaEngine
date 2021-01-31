@@ -4,10 +4,10 @@
  */
 
 #include "snymultirtmppublish.h"
+#include <core/snyeasylogging.h>
 #include <chrono>
 #include <thread>
 #include <utility>
-#include <core/snyeasylogging.h>
 namespace app {
 SnyMultiRTMPPublish::SnyMultiRTMPPublish(std::string name) : threads_(this) { name_ = std::move(name); }
 
