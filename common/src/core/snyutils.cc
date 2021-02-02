@@ -21,20 +21,18 @@ namespace SnyUtils {
   std::string formatstring(const char* format, ...) {
     va_list list;
     va_start(list, format);
-    const int len = std::vsnprintf(NULL, 0, format, list);
-    std::vector<char> buffer(len + 1);
-    std::vsnprintf(buffer.data(), buffer.size(), format, list);
+    std::string s = formatstring(format, &(list[0]));
     va_end(list);
-
-    return std::string(buffer.data(), len);
+    return s;
   }
 
   std::string formatstring(const char* fmt, va_list vl) {
     va_list list;
     va_copy(list, vl);
-    const int len = std::vsnprintf(NULL, 0, fmt, list);
+    const int len = std::vsnprintf(nullptr, 0, fmt, vl);
     std::vector<char> buffer(len + 1);
-    std::vsnprintf(buffer.data(), buffer.size(), fmt, list);
+    va_copy(vl, &(list[0]));
+    std::vsnprintf(buffer.data(), buffer.size(), fmt, vl);
     va_end(list);
 
     return std::string(buffer.data(), len);
