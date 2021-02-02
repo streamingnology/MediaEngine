@@ -13,6 +13,7 @@
 namespace sny {
 namespace SnyUtils {
   SnyUI64 convertTime(SnyUI64 time_value, SnyUI64 from_time_scale, SnyUI64 to_time_scale);
-  std::string formatstring(const char* format, ...);
+  std::string formatstring(const char *format, ...);
+  std::string formatstring(const char *fmt, va_list vl);
 }  // namespace SnyUtils
 }  // namespace sny

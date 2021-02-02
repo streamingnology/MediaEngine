@@ -7,6 +7,7 @@
 #include "core/log.h"
 #include "core/snyeasylogging.h"
 #include "core/string.h"
+#include "core/snyutils.h"
 
 namespace sny {
 static std::mutex g_ffmpeg_mutex;
@@ -37,32 +38,26 @@ void ffmpeg_log_func(void *ptr, int level, const char *fmt, va_list vl) {
   av_log_format_line(ptr, level, fmt, vl2, line, sizeof(line), &print_prefix);
   va_end(vl2);
 
-  // if(level >= AV_LOG_DEBUG) return;
-  ov::String log;
-  log.AppendVFormat(fmt, vl);
+  std::string log = SnyUtils::formatstring(fmt, vl);
   switch (level) {
     case AV_LOG_QUIET:
     case AV_LOG_DEBUG:
     case AV_LOG_VERBOSE:
-      // LOG(DEBUG)<<log;
-      logd(OV_LOG_TAG, line, vl);
+      LOG(DEBUG)<<log;
       break;
     case AV_LOG_INFO:
-      // LOG(INFO)<<log;
-      logi(OV_LOG_TAG, line, vl);
+      LOG(INFO)<<log;
       break;
     case AV_LOG_WARNING:
-      // LOG(WARNING)<<log;
-      logw(OV_LOG_TAG, line, vl);
+      LOG(WARNING)<<log;
       break;
     case AV_LOG_ERROR:
     case AV_LOG_FATAL:
     case AV_LOG_PANIC:
-      // LOG(ERROR)<<log;
-      loge(OV_LOG_TAG, line, vl);
+      LOG(ERROR)<<log;
       break;
     case AV_LOG_TRACE:
-      // log_level = ANDROID_LOG_VERBOSE;
+      //LOG(TRACE) << log;
       break;
     default:
       break;

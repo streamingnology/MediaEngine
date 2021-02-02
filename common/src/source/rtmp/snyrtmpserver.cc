@@ -4,6 +4,7 @@
  */
 #include "snyrtmpserver.h"
 #include "core/snyeasylogging.h"
+#include "core/snyutils.h"
 namespace sny {
 SnyRTMPServer::SnyRTMPServer(const std::shared_ptr<uv::EventLoop>& loop, SnyUI16 rtmp_port)
     : threads_(this), uv::TcpServer(loop.get()), loop_(loop), rtmp_port_(rtmp_port), timeout_sec_(kRTMPTimeoutSec) {
@@ -35,6 +36,7 @@ SnyResult SnyRTMPServer::start() {
     LOG(ERROR) << "bind and listen on " << rtmp_port_ << " failed";
     return SnyFailture;
   }
+  LOG(INFO) << sny::SnyUtils::formatstring("rtmp server is listening on %d ...", rtmp_port_);
   threads_.start(kLoopRunThread);
   return SnySuccess;
 }
