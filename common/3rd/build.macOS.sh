@@ -115,7 +115,7 @@ X264_VERSION=20190513-2245-stable
 X265_VERSION=3.2.1
 VPX_VERSION=1.7.0
 FDKAAC_VERSION=0.1.5
-FFMPEG_VERSION=3.4
+FFMPEG_VERSION=n4.3.1
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     NCPU=$(sysctl -n hw.ncpu)
@@ -201,9 +201,10 @@ install_ffmpeg()
     (DIR=${TEMP_PATH}/ffmpeg && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    curl -sLf https://github.com/AirenSoft/FFmpeg/archive/ome/${FFMPEG_VERSION}.tar.gz | tar -xz --strip-components=1 && \
+    curl -sLf https://github.com/FFmpeg/FFmpeg/archive/${FFMPEG_VERSION}.tar.gz | tar -xz --strip-components=1 && \
     PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH} ./configure \
     --prefix="${PREFIX}" \
+    --enable-pthreads \
     --enable-gpl \
     --enable-nonfree \
     --extra-cflags="-I${PREFIX}/include"  \
