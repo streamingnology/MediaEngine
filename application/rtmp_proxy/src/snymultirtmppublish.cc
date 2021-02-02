@@ -21,7 +21,9 @@ void SnyMultiRTMPPublish::start() {
 
 void SnyMultiRTMPPublish::stop() {
   threads_.stopAll();
-  cv_.notify_all();
+  for (auto& item : cv_) {
+    item.second.notify_all();
+  }
   threads_.waitAll();
 }
 
@@ -33,7 +35,7 @@ int SnyMultiRTMPPublish::onThreadProc(int id) {
     LOG(ERROR) << "failed to create muxer for " << publish_url;
     return id;
   }
-  std::unique_lock<std::mutex> lock(m_cv_);
+  std::unique_lock<std::mutex> lock(mutex_cv_[id]);
   while (!threads_.isStop(id)) {
     mutex_.lock();
     std::shared_ptr<sny::SnyMediaSample> sample = nullptr;
@@ -45,7 +47,8 @@ int SnyMultiRTMPPublish::onThreadProc(int id) {
     if (sample) {
       rtmp_muxer->PutData(sample);
     } else {
-      cv_.wait(lock);
+      //std::this_thread::sleep_for(5ms);
+      cv_[id].wait(lock);
     }
   }
   return id;
@@ -79,7 +82,9 @@ void SnyMultiRTMPPublish::onSample(std::string conn_name, std::shared_ptr<sny::S
     item.second.push_back(sample);
   }
   mutex_.unlock();
-  cv_.notify_all();
+  for (auto& item : cv_) {
+    item.second.notify_all();
+  }
 }
 
 std::shared_ptr<RtmpWriter> SnyMultiRTMPPublish::createRtmpMuxer(const std::string& url) {
