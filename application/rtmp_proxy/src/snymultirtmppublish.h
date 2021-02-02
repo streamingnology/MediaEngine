@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <core/snythreads.h>
+#include <media/mux/snymuxerImplffmpeg.h>
 #include <media/rtmp_writer.h>
 #include <source/rtmp/rtmp_stream.h>
 #include <source/snysourcecallback.h>
@@ -29,7 +30,7 @@ class SnyMultiRTMPPublish : public sny::SnySourceCallback {
   void setConfigure(std::shared_ptr<SnyRTMPProxyConf> cnf) { cnf_ = std::move(cnf); }
 
  private:
-  std::shared_ptr<RtmpWriter> createRtmpMuxer(const std::string& url);
+  std::shared_ptr<sny::SnyIMuxer> createRtmpMuxer(const std::string& url);
 
  private:
   std::string name_;

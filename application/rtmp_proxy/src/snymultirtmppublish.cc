@@ -5,9 +5,7 @@
 
 #include "snymultirtmppublish.h"
 #include <core/snyeasylogging.h>
-#include <chrono>
-#include <thread>
-#include <utility>
+#include <media/mux/snymuxerfactory.h>
 namespace app {
 SnyMultiRTMPPublish::SnyMultiRTMPPublish(std::string name) : threads_(this) { name_ = std::move(name); }
 
@@ -45,9 +43,9 @@ int SnyMultiRTMPPublish::onThreadProc(int id) {
     }
     mutex_.unlock();
     if (sample) {
-      rtmp_muxer->PutData(sample);
+      rtmp_muxer->writeSample(sample);
     } else {
-      //std::this_thread::sleep_for(5ms);
+      // std::this_thread::sleep_for(5ms);
       cv_[id].wait(lock);
     }
   }
@@ -87,23 +85,14 @@ void SnyMultiRTMPPublish::onSample(std::string conn_name, std::shared_ptr<sny::S
   }
 }
 
-std::shared_ptr<RtmpWriter> SnyMultiRTMPPublish::createRtmpMuxer(const std::string& url) {
-  auto muxer = std::make_shared<RtmpWriter>();
-  muxer->SetPath(url, "flv");
+std::shared_ptr<sny::SnyIMuxer> SnyMultiRTMPPublish::createRtmpMuxer(const std::string& url) {
+  auto muxer = sny::SnyMuxerFactory::createMux(sny::SnyMuxerFactory::kFFMPEGMUX);
+  muxer->setPath(url, "flv");
   for (const auto& item : tracks_) {
     auto& track = item.second;
-    auto quality = RtmpTrackInfo::Create();
-    quality->SetCodecId(track->GetCodecId());
-    quality->SetBitrate(track->GetBitrate());
-    quality->SetTimeBase(track->GetTimeBase());
-    quality->SetWidth(track->GetWidth());
-    quality->SetHeight(track->GetHeight());
-    quality->SetSample(track->GetSample());
-    quality->SetChannel(track->GetChannel());
-    quality->SetExtradata(track->GetCodecExtradata());
-    muxer->AddTrack(track->GetMediaType(), track->GetId(), quality);
+    muxer->addMediaTrack(track);
   }
-  if (muxer->Start()) {
+  if (muxer->open()) {
     return muxer;
   } else {
     return nullptr;
