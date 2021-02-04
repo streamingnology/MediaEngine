@@ -4,6 +4,7 @@
  */
 #include "snymuxerfactory.h"
 #include "snymuxerImplffmpeg.h"
+#include "snymuxerImplmpegts.h"
 
 namespace sny {
 
@@ -14,7 +15,7 @@ std::shared_ptr<SnyIMuxer> SnyMuxerFactory::createMux(SnyMuxType mux_type) {
     case kBENTO4MUX:
       return nullptr;
     case kMPEGTSMUX:
-      return nullptr;
+      return std::make_shared<SnyMuxerImplTS>();
     default:
       return nullptr;
   }

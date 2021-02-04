@@ -149,7 +149,6 @@ void RtmpStream::OnAmfConnect(const std::shared_ptr<const RtmpChunkHeader> &head
       //	return;
       //}
     } else {
-      
       auto log = ov::String::FormatString("Could not obtain tcUrl from the RTMP stream: [%s]", _app_name.CStr());
       LOG(ERROR) << log;
 
@@ -429,9 +428,9 @@ bool RtmpStream::OnAmfMetaData(const std::shared_ptr<const RtmpChunkHeader> &hea
 
   if (video_codec_type == RtmpCodecType::H264 && audio_codec_type == RtmpCodecType::AAC) {
   } else {
-    auto log = ov::String::FormatString("AmfMeta has incompatible codec information. - stream(%s/%s) id() video(%s) audio(%s)",
-          _app_name.CStr(), _stream_name.CStr(), GetCodecString(video_codec_type).CStr(),
-          GetCodecString(audio_codec_type).CStr());
+    auto log = ov::String::FormatString(
+        "AmfMeta has incompatible codec information. - stream(%s/%s) id() video(%s) audio(%s)", _app_name.CStr(),
+        _stream_name.CStr(), GetCodecString(video_codec_type).CStr(), GetCodecString(audio_codec_type).CStr());
     LOG(ERROR) << log;
   }
 
@@ -499,12 +498,12 @@ off_t RtmpStream::ReceiveHandshakePacket(const std::shared_ptr<const ov::Data> &
   int32_t process_size = 0;
   switch (_handshake_state) {
     case RtmpHandshakeState::Uninitialized:
-      LOG(DEBUG)<<("Handshaking is started. Trying to parse for C0/C1 packets...");
+      LOG(DEBUG) << ("Handshaking is started. Trying to parse for C0/C1 packets...");
       process_size = (sizeof(uint8_t) + RTMP_HANDSHAKE_PACKET_SIZE);
       break;
 
     case RtmpHandshakeState::S2:
-      LOG(DEBUG)<<("Trying to parse for C2 packet...");
+      LOG(DEBUG) << ("Trying to parse for C2 packet...");
       process_size = (RTMP_HANDSHAKE_PACKET_SIZE);
       break;
 
@@ -516,7 +515,8 @@ off_t RtmpStream::ReceiveHandshakePacket(const std::shared_ptr<const ov::Data> &
 
   if (static_cast<int32_t>(data->GetLength()) < process_size) {
     // Need more data
-    auto log = ov::String::FormatString("Need more data: data: %zu bytes, expected: %d bytes", data->GetLength(), process_size);
+    auto log = ov::String::FormatString("Need more data: data: %zu bytes, expected: %d bytes", data->GetLength(),
+                                        process_size);
     LOG(DEBUG) << log;
     return 0LL;
   }
@@ -530,7 +530,7 @@ off_t RtmpStream::ReceiveHandshakePacket(const std::shared_ptr<const ov::Data> &
     LOG(DEBUG) << log;
     if (version != RTMP_HANDSHAKE_VERSION) {
       auto log = ov::String::FormatString("Invalid RTMP version: %d, expected: %d", version, RTMP_HANDSHAKE_VERSION);
-	  LOG(ERROR) << log;
+      LOG(ERROR) << log;
       return -1LL;
     }
 
@@ -1367,20 +1367,14 @@ ov::String RtmpStream::GetEncoderTypeString(RtmpEncoderType encoder_type) {
 bool RtmpStream::ConvertToSnyMediaSample(std::shared_ptr<MediaTrack> &media_track,
                                          std::shared_ptr<MediaPacket> media_packet) {
   if (media_packet->GetMediaType() == cmn::MediaType::Video) {
-    std::vector<uint8_t> extradata;
-    if (H264AvccToAnnexB::GetExtradata(media_packet->GetPacketType(), media_packet->GetData(), extradata)) {
-      media_track->SetCodecExtradata(extradata);
-      return false;
+    if (media_packet->GetPacketType() == cmn::PacketType::SEQUENCE_HEADER && media_track->GetCodecExtradata().empty()) {
+      std::vector<uint8_t> extradata;
+      if (H264AvccToAnnexB::GetExtradata(media_packet->GetPacketType(), media_packet->GetData(), extradata)) {
+        media_track->SetCodecExtradata(extradata);
+        return false;
+      }
     }
-    /*
-          if (!H264AvccToAnnexB::Convert(media_packet->GetPacketType(),
-                                         media_packet->GetData(),
-                                         video_extra_data_)) {
-            logte("Failed to change bitstream format ");
 
-            return false;
-          }
-    */
     auto video_media_sample = std::make_shared<sny::SnyMediaSample>(
         sny::kMediaTypeVideo, track_codec_types_[media_track->GetId()], sny::kBitStreamH264AVCC,
         media_packet->GetFlag() == MediaPacketFlag::Key, media_packet->GetDts(), media_packet->GetPts(),
@@ -1388,25 +1382,23 @@ bool RtmpStream::ConvertToSnyMediaSample(std::shared_ptr<MediaTrack> &media_trac
     video_media_sample->setData((const char *)media_packet->GetData()->GetData(), media_packet->GetDataLength());
     SendFrame(video_media_sample);
   }
+
   if (media_packet->GetMediaType() == cmn::MediaType::Audio) {
-    std::vector<uint8_t> extradata;
-    if (AACLatmToAdts::GetExtradata(media_packet->GetPacketType(), media_packet->GetData(), extradata)) {
-      media_track->SetCodecExtradata(extradata);
-      return false;
+    if (media_packet->GetPacketType() == cmn::PacketType::SEQUENCE_HEADER && media_track->GetCodecExtradata().empty()) {
+      std::vector<uint8_t> extradata;
+      if (AACLatmToAdts::GetExtradata(media_packet->GetPacketType(), media_packet->GetData(), extradata)) {
+        media_track->SetCodecExtradata(extradata);
+        return false;
+      }
     }
-    /*
-          if (!AACLatmToAdts::Convert(media_packet->GetPacketType(),
-                                      media_packet->GetData(), audio_extra_data_)) {
-            logte("Failed to change bitstream format");
-            return false;
-          }
-    */
+
     auto audio_media_sample = std::make_shared<sny::SnyMediaSample>(
         sny::kMediaTypeAudio, track_codec_types_[media_track->GetId()], sny::kBitStreamAACLATM, true,
         media_packet->GetDts(), media_packet->GetPts(), media_packet->GetDuration(), media_track);
     audio_media_sample->setData((const char *)media_packet->GetData()->GetData(), media_packet->GetDataLength());
     SendFrame(audio_media_sample);
   }
+
   return true;
 }
 
@@ -1459,9 +1451,9 @@ int RtmpStream::onThreadProc(int id) {
           _full_url.CStr(), _remained_data->GetLength(), RTMP_MAX_PACKET_SIZE);
       LOG(WARNING) << log;
     }
-    
-    //auto log = ov::String::FormatString("Trying to parse data\n%s", _remained_data->ToHexString().CStr());
-    //LOG(DEBUG) << log;
+
+    // auto log = ov::String::FormatString("Trying to parse data\n%s", _remained_data->ToHexString().CStr());
+    // LOG(DEBUG) << log;
     while (true) {
       int32_t process_size = 0;
       if (_handshake_state == RtmpHandshakeState::Complete) {

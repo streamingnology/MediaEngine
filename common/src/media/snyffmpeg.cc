@@ -6,8 +6,8 @@
 #include <mutex>
 #include "core/log.h"
 #include "core/snyeasylogging.h"
-#include "core/string.h"
 #include "core/snyutils.h"
+#include "core/string.h"
 
 namespace sny {
 static std::mutex g_ffmpeg_mutex;
@@ -37,27 +37,27 @@ void ffmpeg_log_func(void *ptr, int level, const char *fmt, va_list vl) {
   av_log_default_callback(ptr, level, fmt, vl);
   av_log_format_line(ptr, level, fmt, vl2, line, sizeof(line), &print_prefix);
   va_end(vl2);
-
+  static std::string prefix = "[ffmpeg] ";
   std::string log = SnyUtils::formatstring(fmt, vl);
   switch (level) {
     case AV_LOG_QUIET:
     case AV_LOG_DEBUG:
     case AV_LOG_VERBOSE:
-      LOG(DEBUG)<<log;
+      LOG(DEBUG) << prefix << log;
       break;
     case AV_LOG_INFO:
-      LOG(INFO)<<log;
+      LOG(INFO) << prefix << log;
       break;
     case AV_LOG_WARNING:
-      LOG(WARNING)<<log;
+      LOG(WARNING) << prefix << log;
       break;
     case AV_LOG_ERROR:
     case AV_LOG_FATAL:
     case AV_LOG_PANIC:
-      LOG(ERROR)<<log;
+      LOG(ERROR) << prefix << log;
       break;
     case AV_LOG_TRACE:
-      //LOG(TRACE) << log;
+      // LOG(TRACE) << prefix << log;
       break;
     default:
       break;

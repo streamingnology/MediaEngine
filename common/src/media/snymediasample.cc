@@ -6,9 +6,9 @@
 
 namespace sny {
 SnyMediaSample::SnyMediaSample() {
-  dts_us_ = 0;
-  pts_us_ = 0;
-  duration_us_ = 0;
+  dts_ = 0;
+  pts_ = 0;
+  duration_ = 0;
   key_frame_ = true;
   media_type_ = kMediaTypeUnknown;
 }
@@ -18,9 +18,9 @@ SnyMediaSample::SnyMediaSample(SnyMediaType media_type, SnySI64 dts_us, SnySI64 
   this->codec_type_ = kCodecUnknown;
   this->bsf_fmt_ = kBitStreamUnknwon;
   this->key_frame_ = false;
-  this->dts_us_ = dts_us;
-  this->pts_us_ = pts_us;
-  this->duration_us_ = duration_us;
+  this->dts_ = dts_us;
+  this->pts_ = pts_us;
+  this->duration_ = duration_us;
   this->media_track_ = nullptr;
 }
 
@@ -31,10 +31,11 @@ SnyMediaSample::SnyMediaSample(SnyMediaType media_type, SnyCodecType codec_type,
   codec_type_ = codec_type;
   bsf_fmt_ = bsf_fmt;
   key_frame_ = key;
-  dts_us_ = dts_us;
-  pts_us_ = pts_us;
-  duration_us_ = duration_us;
+  dts_ = dts_us;
+  pts_ = pts_us;
+  duration_ = duration_us;
   media_track_ = track;
+  data_buffer_ = nullptr;
 }
 
 SnyMediaSample::~SnyMediaSample() {}
@@ -45,36 +46,50 @@ enum SnyMediaType SnyMediaSample::getMeidaType() const { return media_type_; }
 void SnyMediaSample::setCodecType(SnyCodecType codec_type) { codec_type_ = codec_type; }
 SnyCodecType SnyMediaSample::getCodecType() const { return codec_type_; }
 
-const char *SnyMediaSample::data() const { return sny_data_buffer_.data(); }
+void SnyMediaSample::setData(const char *data, SnyInt size) {
+  if (!data_buffer_) {
+    data_buffer_ = std::make_shared<ov::Data>();
+  }
+  data_buffer_->Append(data, size);
+}
 
-SnyInt SnyMediaSample::size() const { return sny_data_buffer_.size(); }
+const char *SnyMediaSample::data() const {
+  if (data_buffer_) {
+    return (const char *)data_buffer_->GetData();
+  }
+  return nullptr;
+}
 
-const SnyDataBuffer &SnyMediaSample::dataBuffer() const { return sny_data_buffer_; }
+SnyInt SnyMediaSample::size() const {
+  if (data_buffer_) {
+    return data_buffer_->GetLength();
+  }
+  return 0;
+}
 
-SnySI64 SnyMediaSample::dts() const { return dts_us_; }
+bool SnyMediaSample::isEmpty() const {
+  if (data_buffer_) {
+    return data_buffer_->IsEmpty();
+  }
+  return true;
+}
 
-SnySI64 SnyMediaSample::pts() const { return pts_us_; }
+void SnyMediaSample::setDataBuffer(std::shared_ptr<ov::Data> &dataBuffer) { data_buffer_ = dataBuffer; }
+std::shared_ptr<ov::Data> SnyMediaSample::getDataBuffer() const { return data_buffer_; }
 
-SnySI64 SnyMediaSample::duration() const { return duration_us_; }
+SnySI64 SnyMediaSample::dts() const { return dts_; }
+void SnyMediaSample::setDts(SnySI64 dts) { dts_ = dts; }
 
-bool SnyMediaSample::isKey() const { return key_frame_; }
+SnySI64 SnyMediaSample::pts() const { return pts_; }
+void SnyMediaSample::setPts(SnySI64 pts) { pts_ = pts; }
 
-bool SnyMediaSample::isEmpty() const { return sny_data_buffer_.isEmpty(); }
-
-void SnyMediaSample::setDataBuffer(const SnyDataBuffer &dataBuffer) { sny_data_buffer_ = dataBuffer; }
-
-void SnyMediaSample::setData(const char *data, SnyInt size) { sny_data_buffer_.assign(data, size); }
-
-void SnyMediaSample::setDts(SnySI64 dts_us) { dts_us_ = dts_us; }
-
-void SnyMediaSample::setPts(SnySI64 pts_us) { pts_us_ = pts_us; }
-
-void SnyMediaSample::setDuration(SnySI64 duration_us) { duration_us_ = duration_us; }
+SnySI64 SnyMediaSample::duration() const { return duration_; }
+void SnyMediaSample::setDuration(SnySI64 duration) { duration_ = duration; }
 
 void SnyMediaSample::setKey(bool isKey) { key_frame_ = isKey; }
+bool SnyMediaSample::isKey() const { return key_frame_; }
 
 void SnyMediaSample::setMediaTrack(std::shared_ptr<MediaTrack> &track) { media_track_ = track; }
-
 std::shared_ptr<MediaTrack> &SnyMediaSample::getMediaTrack() { return media_track_; }
 
 SnyInt SnyMediaSample::getTrackID() {

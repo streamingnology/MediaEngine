@@ -26,17 +26,18 @@ class SnyMediaSample {
   SnyBitStreamFormat getBitStreamFormat() { return bsf_fmt_; }
   const char *data() const;
   SnyInt size() const;
-  const SnyDataBuffer &dataBuffer() const;
+
   SnySI64 dts() const;
   SnySI64 pts() const;
   SnySI64 duration() const;
   SnyBool isKey() const;
   SnyBool isEmpty() const;
-  void setDataBuffer(const SnyDataBuffer &dataBuffer);
+  void setDataBuffer(std::shared_ptr<ov::Data> &dataBuffer);
+  std::shared_ptr<ov::Data> getDataBuffer() const;
   void setData(const char *data, SnyInt size);
-  void setDts(SnySI64 dts_us);
-  void setPts(SnySI64 pts_us);
-  void setDuration(SnySI64 duration_us);
+  void setDts(SnySI64 dts);
+  void setPts(SnySI64 pts);
+  void setDuration(SnySI64 duration);
   void setKey(SnyBool isKey);
   void setMediaTrack(std::shared_ptr<MediaTrack> &track);
   std::shared_ptr<MediaTrack> &getMediaTrack();
@@ -49,10 +50,10 @@ class SnyMediaSample {
   SnyMediaType media_type_;
   SnyCodecType codec_type_;
   SnyBitStreamFormat bsf_fmt_;
-  SnyDataBuffer sny_data_buffer_;
-  SnySI64 dts_us_;
-  SnySI64 pts_us_;
-  SnySI64 duration_us_;
+  std::shared_ptr<ov::Data> data_buffer_;
+  SnySI64 dts_;
+  SnySI64 pts_;
+  SnySI64 duration_;
   SnyBool key_frame_;
   std::shared_ptr<MediaTrack> media_track_;
 };

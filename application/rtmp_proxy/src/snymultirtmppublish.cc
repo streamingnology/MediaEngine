@@ -1,5 +1,5 @@
 /*
- *copyleft (c) 2019 www.streamingnology.com
+ *copyleft (c) 2021 www.streamingnology.com
  *code released under GPL license
  */
 

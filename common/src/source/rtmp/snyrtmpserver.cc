@@ -52,12 +52,12 @@ void SnyRTMPServer::onRTMPNewConnectCallback(const std::weak_ptr<uv::TcpConnecti
   if (tcp_connection) {
     auto conn_name = tcp_connection->Name();
     LOG(DEBUG) << "new connection: " << conn_name;
-    auto rtmp_stream = pvd::RtmpStream::Create(tcp_connection->Name());
+    auto rtmp_stream = pvd::RtmpStream::Create(conn_name);
     rtmp_stream->setRTMPCallback(this);
     rtmp_stream->setRTMPSendDataCallback(std::bind(&SnyRTMPServer::onRTMPSendDataCallback, this, std::placeholders::_1,
                                                    std::placeholders::_2, std::placeholders::_3));
     rtmp_stream->start();
-    rtmp_streams_.insert(std::make_pair(tcp_connection->Name(), rtmp_stream));
+    rtmp_streams_.insert(std::make_pair(conn_name, rtmp_stream));
     if (new_connect_callback_) {
       new_connect_callback_(conn, conn_name);
     }
