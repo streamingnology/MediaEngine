@@ -66,3 +66,13 @@ rtmp_port is the listening port of this app_rtmp_server. There are two input str
   2. *rtmp://192.168.1.252:1937/app/travel_europe_2*
   3. *rtmp://192.168.1.252:1937/app/travel_europe_3*
   4. *rtmp://192.168.1.252:1937/app/travel_europe_4*
+
+# Network Module
+There are two main network models: Reactor and Proactor. In the Linux platform, epoll is used as a Reactor model. In Windows and Unix, IOCP is used as a Proactor model.
+
+In the implementation of this RTMP proxy now, Reactor is selected. To prevent parsing RTMP stream consuming too much time in the reactor thread, this app creates one thread when each RTMP stream connects to the server, works about processing RTMP stream is in each thread.
+
+Because according to the RTMP protocol, response from the RTMP server is rare and data is small, the Reactor model can fit demand. But Proactor model is better, we will move to Proactor model in the next work. 
+
+# TODO
+The most important thing is to implement RTMP server by Proactor model.
