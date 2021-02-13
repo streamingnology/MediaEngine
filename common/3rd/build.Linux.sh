@@ -230,6 +230,14 @@ install_ffmpeg()
     rm -rf ${DIR}) || fail_exit "ffmpeg"
 }
 
+install_asio() 
+{
+  (DIR=${build_path}/asio && \
+    mkdir -p ${DIR} && \
+    cd ${DIR} && \
+    curl -sLf https://netactuate.dl.sourceforge.net/project/asio/asio/1.18.1%20%28Stable%29/asio-1.18.1.tar.gz | tar -xz --strip-components=1) || fail_exit "asio"
+}
+
 main(){
   build_Bento4
   #build_gpac
@@ -239,6 +247,7 @@ main(){
   #build_jwtcpp
   build_libuv
   build_uvcpp
+  install_asio
 
   install_libopus
   install_libx264

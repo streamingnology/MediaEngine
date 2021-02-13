@@ -1,5 +1,6 @@
 download these files to MediaEngin\common\3rd\download
 https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-01-30-12-32/ffmpeg-n4.3.1-30-g666d2fc6e2-win64-gpl-shared-4.3.zip
+https://netactuate.dl.sourceforge.net/project/asio/asio/1.18.1%20%28Stable%29/asio-1.18.1.tar.gz
 https://github.com/axiomatic-systems/Bento4/archive/v1.5.1-629.tar.gz
 https://github.com/openssl/openssl/archive/OpenSSL_1_1_1d.tar.gz
 https://github.com/amrayn/easyloggingpp/archive/v9.96.7.tar.gz
@@ -27,3 +28,6 @@ refer to download\build_libuv.bat
 
 * install uv-cpp
 refer to download\build_uvcpp.bat
+
+* install asio
+unzip asio, copy to MediaEngin\common\3rd\build\asio

@@ -2,7 +2,10 @@
 #include <core/snydatabuffer.h>
 #include <core/snyeasylogging.h>
 #include <core/snyresults.h>
+#include <core/snyutils.h>
+#include <core/socket_manager/sny_socket_manager.h>
 #include <csignal>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include "snymultirtmppublish.h"
@@ -22,38 +25,29 @@ int main(int argc, char** args) {
   el::Configurations conf("../conf/el.conf");
   el::Loggers::reconfigureAllLoggers(conf);
 
-  std::string rtmp_proxy_cnf_file = "../conf/config.json";
-  bool success = false;
-  AP4_ByteStream* byte_stream = nullptr;
-  do {
-    AP4_Result result =
-        AP4_FileByteStream::Create(rtmp_proxy_cnf_file.c_str(), AP4_FileByteStream::STREAM_MODE_READ, byte_stream);
-    if (AP4_FAILED(result)) {
-      LOG(ERROR) << "open config.json failed";
-      break;
-    }
-    sny::SnyUI64 size;
-    byte_stream->GetSize(size);
-    sny::SnyDataBuffer conf_data;
-    conf_data.resize(size);
-    result = byte_stream->Read(conf_data.data(), conf_data.size());
-    if (AP4_FAILED(result)) {
-      LOG(ERROR) << "read config.json failed";
-      break;
-    }
-    byte_stream->Release();
-    byte_stream = nullptr;
+  // "$cwd/../conf/config.json"
+  std::filesystem::path cwd_relative_path = "..";
+  auto cnf_relative_path = cwd_relative_path / "conf" / "config.json";
 
-    auto rtmp_proxy_cnf = app::parse(conf_data);
-    if (rtmp_proxy_cnf == nullptr) {
-      LOG(ERROR) << "parse config.json failed";
+  bool success = false;
+  do {
+    auto cnf_data = sny::SnyUtils::loadConfig(cnf_relative_path);
+    if (cnf_data.isEmpty()) {
       break;
     }
+
+    LOG(INFO) << "try to parse config...";
+    auto rtmp_proxy_cnf = app::parse(cnf_data);
+    if (rtmp_proxy_cnf == nullptr) {
+      LOG(ERROR) << "parse config failed";
+      break;
+    }
+    LOG(INFO) << "parse config ok";
 
     std::map<std::string, std::shared_ptr<app::SnyMultiRTMPPublish>> rtmp_proxys;
     auto rtmp_proxy = std::make_shared<app::SnyRTMPProxy>();
     rtmp_proxy->setConfigure(rtmp_proxy_cnf);
-    result = rtmp_proxy->start();
+    auto result = rtmp_proxy->start();
     if (sny::SnySuccess != result) {
       LOG(ERROR) << "start rtmp proxy failed";
       break;
@@ -64,8 +58,5 @@ int main(int argc, char** args) {
     }
   } while (false);
 
-  if (byte_stream) {
-    byte_stream->Release();
-  }
   return success ? sny::SnySuccess : sny::SnyFailture;
 }

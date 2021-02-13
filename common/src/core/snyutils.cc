@@ -4,11 +4,13 @@
  */
 
 #include "core/snyutils.h"
+#include <cstdarg>
+#include <memory>
+#include "Ap4FileByteStream.h"
 #include "core/snyplatform.h"
 #include "core/snytype.h"
+#include "snyeasylogging.h"
 #include "snyplatform.h"
-#include <memory>
-#include <cstdarg>
 
 namespace sny {
 namespace SnyUtils {
@@ -36,6 +38,42 @@ namespace SnyUtils {
     va_end(list);
 
     return std::string(buffer.data(), len);
+  }
+  SnyDataBuffer loadConfig(std::filesystem::path cnf) {
+    SnyDataBuffer data_buffer;
+    if (cnf.empty()) {
+      LOG(ERROR) << "config relative path is empty";
+      return data_buffer;
+    }
+
+    auto cwd_absolute = std::filesystem::current_path();
+    auto cnf_absolute_path = cwd_absolute / cnf;
+    LOG(INFO) << "try to load config... ";
+    LOG(INFO) << "config file: " << cnf_absolute_path.string();
+
+    AP4_ByteStream* byte_stream = nullptr;
+    do {
+      AP4_Result result = AP4_FileByteStream::Create(cnf_absolute_path.string().c_str(),
+                                                     AP4_FileByteStream::STREAM_MODE_READ, byte_stream);
+      if (AP4_FAILED(result)) {
+        LOG(ERROR) << "open config.json failed";
+        break;
+      }
+      LOG(INFO) << "load config ok";
+      sny::SnyUI64 size;
+      byte_stream->GetSize(size);
+      data_buffer.resize(size);
+      result = byte_stream->Read(data_buffer.data(), data_buffer.size());
+      if (AP4_FAILED(result)) {
+        data_buffer.clear();
+        LOG(ERROR) << "read config failed";
+        break;
+      }
+    } while (false);
+    byte_stream->Release();
+    byte_stream = nullptr;
+
+    return data_buffer;
   }
 }  // namespace SnyUtils
 }  // namespace sny
