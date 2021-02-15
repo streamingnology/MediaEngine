@@ -1,7 +1,7 @@
 {
   "name":"rtmp proxy",
   "version":1,
-  "rtmp_port":1935,
+  "rtmp_port":1937,
   "proxy":[
     {
       "application_name":"live",

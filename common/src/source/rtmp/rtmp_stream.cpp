@@ -56,7 +56,7 @@ std::shared_ptr<RtmpStream> RtmpStream::Create(std::string conn_name) {
   return stream;
 }
 
-RtmpStream::RtmpStream(std::string conn_name) : threads_(this) {
+RtmpStream::RtmpStream(std::string conn_name) {
   //_remote = client_socket;
   _import_chunk = std::make_shared<RtmpImportChunk>(RTMP_DEFAULT_CHUNK_SIZE);
   _export_chunk = std::make_shared<RtmpExportChunk>(false, RTMP_DEFAULT_CHUNK_SIZE);
@@ -66,17 +66,54 @@ RtmpStream::RtmpStream(std::string conn_name) : threads_(this) {
   _stream_check_time = time(nullptr);
   published_ = false;
   conn_name_ = conn_name;
+  deliver_handler_ = nullptr;
 }
 
-RtmpStream::~RtmpStream() { stop(); }
+RtmpStream::~RtmpStream() {}
 
-bool RtmpStream::OnDataReceived(const char *data_buffer, int data_size) {
-  mutex_.lock();
+void RtmpStream::setDeliverHandler(std::shared_ptr<sny::SnyConnectionDeliverHandler> handler) {
+  deliver_handler_ = handler;
+}
+
+void RtmpStream::onDataReceived(const char *data_buffer, int data_size) {
   auto raw_data = std::make_shared<ov::Data>(data_buffer, data_size);
-  incomming_data_.push_back(raw_data);
-  mutex_.unlock();
-  cv_.notify_all();
-  return true;
+
+  if (_remained_data == nullptr) {
+    _remained_data = raw_data;
+  } else {
+    _remained_data->Append(raw_data);
+  }
+
+  if (_remained_data->GetLength() > RTMP_MAX_PACKET_SIZE) {
+    auto log = ov::String::FormatString(
+        "The packet is ignored because the size is too large: [%s]), packet size: %zu, threshold: %d", _full_url.CStr(),
+        _remained_data->GetLength(), RTMP_MAX_PACKET_SIZE);
+    LOG(WARNING) << log;
+  }
+
+  // auto log = ov::String::FormatString("Trying to parse data\n%s", _remained_data->ToHexString().CStr());
+  // LOG(DEBUG) << log;
+  while (true) {
+    int32_t process_size = 0;
+    if (_handshake_state == RtmpHandshakeState::Complete) {
+      process_size = ReceiveChunkPacket(_remained_data);
+    } else {
+      process_size = ReceiveHandshakePacket(_remained_data);
+    }
+    if (process_size < 0) {
+      auto log = ov::String::FormatString("Could not parse RTMP packet: [%s], size: %zu bytes, returns: %d",
+                                          _full_url.CStr(), _remained_data->GetLength(), process_size);
+      LOG(WARNING) << log;
+      break;
+    } else if (process_size == 0) {
+      // Need more data
+      // logtd("Not enough data");
+      break;
+    } else {
+      //
+    }
+    _remained_data = _remained_data->Subdata(process_size);
+  }
 }
 
 bool RtmpStream::AddTrack(std::shared_ptr<MediaTrack> track) {
@@ -1077,6 +1114,9 @@ bool RtmpStream::SetTrackInfo(const std::shared_ptr<RtmpMediaInfo> &media_info) 
 }
 
 bool RtmpStream::SendData(int data_size, uint8_t *data) {
+  if (deliver_handler_) {
+    deliver_handler_->deliver((const char *)data, data_size);
+  }
   if (send_data_callback_) {
     send_data_callback_(conn_name_, reinterpret_cast<const char *>(data), data_size);
   }
@@ -1424,66 +1464,4 @@ bool RtmpStream::SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample) {
   return true;
 }
 
-int RtmpStream::onThreadProc(int id) {
-  while (!threads_.isStop(id)) {
-    mutex_.lock();
-    std::shared_ptr<ov::Data> raw_data = nullptr;
-    if (!incomming_data_.empty()) {
-      raw_data = incomming_data_.front();
-      incomming_data_.pop_front();
-    }
-    mutex_.unlock();
-    if (!raw_data) {
-      std::unique_lock lock(mutex_cv_);
-      cv_.wait(lock);
-      continue;
-    }
-
-    if (_remained_data == nullptr) {
-      _remained_data = raw_data;
-    } else {
-      _remained_data->Append(raw_data);
-    }
-
-    if (_remained_data->GetLength() > RTMP_MAX_PACKET_SIZE) {
-      auto log = ov::String::FormatString(
-          "The packet is ignored because the size is too large: [%s]), packet size: %zu, threshold: %d",
-          _full_url.CStr(), _remained_data->GetLength(), RTMP_MAX_PACKET_SIZE);
-      LOG(WARNING) << log;
-    }
-
-    // auto log = ov::String::FormatString("Trying to parse data\n%s", _remained_data->ToHexString().CStr());
-    // LOG(DEBUG) << log;
-    while (true) {
-      int32_t process_size = 0;
-      if (_handshake_state == RtmpHandshakeState::Complete) {
-        process_size = ReceiveChunkPacket(_remained_data);
-      } else {
-        process_size = ReceiveHandshakePacket(_remained_data);
-      }
-      if (process_size < 0) {
-        auto log = ov::String::FormatString("Could not parse RTMP packet: [%s], size: %zu bytes, returns: %d",
-                                            _full_url.CStr(), _remained_data->GetLength(), process_size);
-        LOG(WARNING) << log;
-        break;
-      } else if (process_size == 0) {
-        // Need more data
-        // logtd("Not enough data");
-        break;
-      } else {
-        //
-      }
-      _remained_data = _remained_data->Subdata(process_size);
-    }
-  }
-  return id;
-}
-
-void RtmpStream::start() { threads_.start(kRtmpStreamParseThread); }
-
-void RtmpStream::stop() {
-  threads_.stopAll();
-  cv_.notify_all();
-  threads_.waitAll();
-}
 }  // namespace pvd

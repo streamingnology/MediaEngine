@@ -16,6 +16,7 @@
 #include <utility>
 #include "core/snyconstants.h"
 #include "core/snythreads.h"
+#include "core/socket/sny_connection_callback.h"
 #include "core/url.h"
 #include "media/common_types.h"
 #include "media/media_buffer.h"
@@ -36,29 +37,28 @@
 #define RTMP_AUDIO_TRACK_ID 1
 
 namespace pvd {
-const int kRtmpStreamParseThread = 0;
+
 using OnRTMPSendDataCallback = std::function<void(std::string &conn_name, const char *data, const int size)>;
-class RtmpStream {
+class RtmpStream : public sny::SnyConnectionReceiveHandler {
  public:
   static std::shared_ptr<RtmpStream> Create(std::string conn_name);
 
   explicit RtmpStream(std::string conn_name);
   ~RtmpStream();
 
-  bool OnDataReceived(const char *data_buffer, int data_size);
-  bool AddTrack(std::shared_ptr<MediaTrack> track);
-  std::shared_ptr<MediaTrack> GetTrack(int32_t id);
+  void setDeliverHandler(std::shared_ptr<sny::SnyConnectionDeliverHandler> handler);
+  void onDataReceived(const char *data_buffer, int data_size);
+
   void setRTMPCallback(sny::SnySourceCallback *call_back) { call_back_ = call_back; }
   void setRTMPSendDataCallback(OnRTMPSendDataCallback callback) { send_data_callback_ = std::move(callback); }
-  int onThreadProc(int id);
-  void start();
-  void stop();
 
- protected:
+ private:
+  bool AddTrack(std::shared_ptr<MediaTrack> track);
+  std::shared_ptr<MediaTrack> GetTrack(int32_t id);
+
   bool ConvertToSnyMediaSample(std::shared_ptr<MediaTrack> &media_track, std::shared_ptr<MediaPacket> media_packet);
   bool SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample);
 
- private:
   // AMF Event
   void OnAmfConnect(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document, double transaction_id);
   void OnAmfCreateStream(const std::shared_ptr<const RtmpChunkHeader> &header, AmfDocument &document,
@@ -150,16 +150,13 @@ class RtmpStream {
   std::map<int32_t, std::shared_ptr<MediaTrack>> _tracks;
   std::map<int32_t, sny::SnyCodecType> track_codec_types_;
   bool track_info_sent_ = false;
-  sny::Threads<RtmpStream> threads_;
 
   // Received data buffer
-  std::mutex mutex_;
-  std::mutex mutex_cv_;
-  std::condition_variable cv_;
-  std::deque<std::shared_ptr<ov::Data>> incomming_data_;
   std::shared_ptr<ov::Data> _remained_data = nullptr;
 
   sny::SnySourceCallback *call_back_ = nullptr;
+
+  std::shared_ptr<sny::SnyConnectionDeliverHandler> deliver_handler_;
   // For statistics
   time_t _stream_check_time = 0;
   uint32_t _key_frame_interval = 0;

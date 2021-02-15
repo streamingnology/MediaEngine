@@ -56,7 +56,7 @@ void SnyRTMPServer::onRTMPNewConnectCallback(const std::weak_ptr<uv::TcpConnecti
     rtmp_stream->setRTMPCallback(this);
     rtmp_stream->setRTMPSendDataCallback(std::bind(&SnyRTMPServer::onRTMPSendDataCallback, this, std::placeholders::_1,
                                                    std::placeholders::_2, std::placeholders::_3));
-    rtmp_stream->start();
+    //rtmp_stream->start();
     rtmp_streams_.insert(std::make_pair(conn_name, rtmp_stream));
     if (new_connect_callback_) {
       new_connect_callback_(conn, conn_name);
@@ -84,7 +84,7 @@ void SnyRTMPServer::onRTMPMessageReceived(const uv::TcpConnectionPtr& conn, cons
   auto conn_name = conn->Name();
   auto item = rtmp_streams_.find(conn_name);
   if (item != rtmp_streams_.end()) {
-    item->second->OnDataReceived(data, size);
+    item->second->onDataReceived(data, size);
   }
 }
 
