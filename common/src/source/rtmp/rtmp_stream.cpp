@@ -10,10 +10,12 @@
 #include "rtmp_stream.h"
 #include <core/snyeasylogging.h>
 #include <media/bitstream/aac/aac_latm_to_adts.h>
+#include "core/snyutils.h"
 #include "media/bitstream/aac/aac_specific_config.h"
 #include "media/bitstream/h264/h264_avcc_to_annexb.h"
 #include "media/bitstream/h264/h264_decoder_configuration_record.h"
 #include "media/flv/flv_parser.h"
+
 /*
 Process of publishing
 
@@ -46,18 +48,13 @@ Process of publishing
  - H.264 : SPS/PPS
  - AAC : Control Byte
 */
-#define OV_LOG_TAG "rtmp_stream"
 namespace pvd {
 std::shared_ptr<RtmpStream> RtmpStream::Create(std::string conn_name) {
   auto stream = std::make_shared<RtmpStream>(conn_name);
-  if (stream != nullptr) {
-    // stream->Start();
-  }
   return stream;
 }
 
 RtmpStream::RtmpStream(std::string conn_name) {
-  //_remote = client_socket;
   _import_chunk = std::make_shared<RtmpImportChunk>(RTMP_DEFAULT_CHUNK_SIZE);
   _export_chunk = std::make_shared<RtmpExportChunk>(false, RTMP_DEFAULT_CHUNK_SIZE);
   _media_info = std::make_shared<RtmpMediaInfo>();
@@ -73,6 +70,22 @@ RtmpStream::~RtmpStream() {}
 
 void RtmpStream::setDeliverHandler(std::shared_ptr<sny::SnyConnectionDeliverHandler> handler) {
   deliver_handler_ = handler;
+}
+
+void RtmpStream::onSSLHandshakeError(std::string err) {
+  std::string log =
+      sny::SnyUtils::formatstring("RtmpStream::onSSLHandshakeError, %s, %d", conn_name_.c_str(), err.c_str());
+  LOG(ERROR) << log;
+}
+
+void RtmpStream::onReadError(std::string err) {
+  std::string log = sny::SnyUtils::formatstring("RtmpStream::onReadError, %s, %d", conn_name_.c_str(), err.c_str());
+  LOG(ERROR) << log;
+}
+
+void RtmpStream::onWriteError(std::string err) {
+  std::string log = sny::SnyUtils::formatstring("RtmpStream::onWriteError, %s, %d", conn_name_.c_str(), err.c_str());
+  LOG(ERROR) << log;
 }
 
 void RtmpStream::onDataReceived(const char *data_buffer, int data_size) {
@@ -1116,9 +1129,6 @@ bool RtmpStream::SetTrackInfo(const std::shared_ptr<RtmpMediaInfo> &media_info) 
 bool RtmpStream::SendData(int data_size, uint8_t *data) {
   if (deliver_handler_) {
     deliver_handler_->deliver((const char *)data, data_size);
-  }
-  if (send_data_callback_) {
-    send_data_callback_(conn_name_, reinterpret_cast<const char *>(data), data_size);
   }
   return true;
 }

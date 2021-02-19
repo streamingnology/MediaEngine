@@ -47,10 +47,12 @@ class RtmpStream : public sny::SnyConnectionReceiveHandler {
   ~RtmpStream();
 
   void setDeliverHandler(std::shared_ptr<sny::SnyConnectionDeliverHandler> handler);
+  void onSSLHandshakeError(std::string err);
+  void onReadError(std::string err);
+  void onWriteError(std::string err);
   void onDataReceived(const char *data_buffer, int data_size);
 
   void setRTMPCallback(sny::SnySourceCallback *call_back) { call_back_ = call_back; }
-  void setRTMPSendDataCallback(OnRTMPSendDataCallback callback) { send_data_callback_ = std::move(callback); }
 
  private:
   bool AddTrack(std::shared_ptr<MediaTrack> track);
@@ -146,7 +148,6 @@ class RtmpStream : public sny::SnyConnectionReceiveHandler {
   bool IsPublished() { return published_; }
   bool published_;
   std::string conn_name_;
-  OnRTMPSendDataCallback send_data_callback_;
   std::map<int32_t, std::shared_ptr<MediaTrack>> _tracks;
   std::map<int32_t, sny::SnyCodecType> track_codec_types_;
   bool track_info_sent_ = false;

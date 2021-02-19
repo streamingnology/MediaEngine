@@ -32,6 +32,7 @@ class SnyConnection : public SnyConnectionDeliverHandler, public std::enable_sha
   void deliver(const char* data, const int size);
   virtual void on_deliver_event() = 0;
 
+  std::string getConnectionName() { return ip_address_ + ":" + ip_port_; }
   std::string getIPAddress() { return ip_address_; }
   std::string getIPPort() { return ip_port_; }
 

@@ -28,8 +28,7 @@ void SnyConnectionManager::init() {
   do_await_stop();
 
   // listen on plain socket
-  asio::ip::tcp::resolver resolver_plain(io_context_);
-  asio::ip::tcp::endpoint endpoint_plain = *resolver_plain.resolve(ip_address_, std::to_string(ip_port_plain_)).begin();
+  asio::ip::tcp::endpoint endpoint_plain(asio::ip::address::from_string(ip_address_), ip_port_plain_);
   acceptor_.open(endpoint_plain.protocol());
   acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
   acceptor_.bind(endpoint_plain);
@@ -50,8 +49,7 @@ void SnyConnectionManager::init() {
   }
 
   // listen on ssl socket
-  asio::ip::tcp::resolver resolver_ssl(io_context_);
-  asio::ip::tcp::endpoint endpoint_ssl = *resolver_ssl.resolve(ip_address_, std::to_string(ip_port_ssl_)).begin();
+  asio::ip::tcp::endpoint endpoint_ssl(asio::ip::address::from_string(ip_address_), ip_port_ssl_);
   acceptor_ssl_.open(endpoint_ssl.protocol());
   acceptor_ssl_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
   acceptor_ssl_.bind(endpoint_ssl);

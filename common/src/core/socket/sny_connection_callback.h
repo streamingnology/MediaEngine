@@ -9,6 +9,9 @@ class SnyConnectionDeliverHandler;
 
 class SnyConnectionReceiveHandler {
  public:
+  virtual void onSSLHandshakeError(std::string err) = 0;
+  virtual void onReadError(std::string err) = 0;
+  virtual void onWriteError(std::string err) = 0;
   virtual void onDataReceived(const char* data, const int size) = 0;
   virtual void setDeliverHandler(std::shared_ptr<SnyConnectionDeliverHandler> deliver_handler) = 0;
 };

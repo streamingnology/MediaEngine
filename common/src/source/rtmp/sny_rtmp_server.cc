@@ -15,7 +15,7 @@ SnyRTMPServerASIO::~SnyRTMPServerASIO() {}
 void SnyRTMPServerASIO::onNewConnection(std::shared_ptr<SnyConnection> conn) {
   auto deliver_handler = std::dynamic_pointer_cast<sny::SnyConnectionDeliverHandler>(conn);
 
-  auto rtmp_stream = std::make_shared<pvd::RtmpStream>("");
+  auto rtmp_stream = std::make_shared<pvd::RtmpStream>(conn->getConnectionName());
   auto receive_handler = std::dynamic_pointer_cast<sny::SnyConnectionReceiveHandler>(rtmp_stream);
 
   conn->setConnReceiveHandler(receive_handler);

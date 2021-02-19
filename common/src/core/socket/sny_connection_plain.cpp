@@ -4,6 +4,7 @@
  */
 #include "sny_connection_plain.h"
 #include <iostream>
+#include "core/snyeasylogging.h"
 #include "sny_connection_manager_interface.h"
 
 namespace sny {
@@ -39,9 +40,9 @@ void SnyConnectionPlain::do_read() {
       }
       do_read();
     } else if (ec == asio::error::operation_aborted) {
-      std::cout << "read, " << ec.message() << std::endl;
+      LOG(WARNING) << "SnyConnectionPlain::do_read, " << getConnectionName() << "." << ec.message();
     } else {
-      std::cout << "read, " << ec.message() << std::endl;
+      LOG(WARNING) << "SnyConnectionPlain::do_read, " << getConnectionName() << "." << ec.message();
       conn_mgr_->stopConnection(shared_from_this());
     }
   });
@@ -60,11 +61,10 @@ void SnyConnectionPlain::do_write() {
   asio::async_write(socket_, reply_, [this, self](std::error_code ec, std::size_t) {
     reply_.clear();
     if (!ec) {
-      // std::cout << "write, " << ec.message() << std::endl;
     } else if (ec == asio::error::operation_aborted) {
-      std::cout << "write, " << ec.message() << std::endl;
+      LOG(WARNING) << "SnyConnectionPlain::do_write, " << getConnectionName() << "." << ec.message();
     } else {
-      std::cout << "write, " << ec.message() << std::endl;
+      LOG(WARNING) << "SnyConnectionPlain::do_write, " << getConnectionName() << "." << ec.message();
       conn_mgr_->stopConnection(shared_from_this());
     }
     mutex_.lock();

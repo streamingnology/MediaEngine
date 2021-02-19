@@ -4,6 +4,7 @@
  */
 #include "sny_connection_ssl.h"
 #include <iostream>
+#include "core/snyeasylogging.h"
 #include "sny_connection_manager_interface.h"
 
 namespace sny {
@@ -38,7 +39,10 @@ void SnyConnectionSSL::do_read() {
       if (receive_handler_) {
         receive_handler_->onDataReceived(buffer_.data(), bytes_transferred);
       }
-    } else if (ec != asio::error::operation_aborted) {
+    } else if (ec == asio::error::operation_aborted) {
+      LOG(WARNING) << "SnyConnectionSSL::do_read, " << getConnectionName() << "." << ec.message();
+    } else {
+      LOG(WARNING) << "SnyConnectionSSL::do_read, " << getConnectionName() << "." << ec.message();
       conn_mgr_->stopConnection(shared_from_this());
     }
   });
@@ -55,10 +59,11 @@ void SnyConnectionSSL::do_write() {
 
   auto self(shared_from_this());
   asio::async_write(socket_ssl_, reply_, [this, self](std::error_code ec, std::size_t) {
-    std::cout << "do_write callback: " << ec.message() << std::endl;
     if (!ec) {
     } else if (ec == asio::error::operation_aborted) {
+      LOG(WARNING) << "SnyConnectionSSL::do_write, " << getConnectionName() << "." << ec.message();
     } else {
+      LOG(WARNING) << "SnyConnectionSSL::do_write, " << getConnectionName() << "." << ec.message();
       conn_mgr_->stopConnection(shared_from_this());
     }
 
@@ -73,16 +78,19 @@ void SnyConnectionSSL::do_write() {
 }
 
 void SnyConnectionSSL::do_handshake() {
-  std::cout << "do_handshake: " << ip_address_ << ip_port_ << std::endl;
+
   auto self(shared_from_this());
   socket_ssl_.async_handshake(asio::ssl::stream_base::server, [this, self](const std::error_code& ec) {
     if (!ec) {
       do_read();
     } else if (ec == asio::error::operation_aborted) {
+      LOG(WARNING) << "SnyConnectionSSL::do_handshake, " << getConnectionName() << "." << ec.message();
     } else {
+      LOG(WARNING) << "SnyConnectionSSL::do_handshake, " << getConnectionName() << "." << ec.message();
       conn_mgr_->stopConnection(shared_from_this());
     }
   });
+
 }
 
 }  // namespace sny

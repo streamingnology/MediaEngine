@@ -30,6 +30,12 @@ class SnyConnectionManager : public SnyConnectionManagerInterface {
 
   int onThreadProc(int id);
 
+  virtual void onNewConnection(std::shared_ptr<SnyConnection> conn) = 0;
+  virtual void onDelConnection(std::shared_ptr<SnyConnection> conn) = 0;
+  virtual void onSSLHandShakeError(std::shared_ptr<SnyConnection> conn) = 0;
+  virtual void onReadError(std::shared_ptr<SnyConnection> conn) = 0;
+  virtual void onWriteError(std::shared_ptr<SnyConnection> conn) = 0;
+
   void startConnection(std::shared_ptr<SnyConnection> c) override;
 
   void stopConnection(std::shared_ptr<SnyConnection> c) override;
@@ -45,7 +51,6 @@ class SnyConnectionManager : public SnyConnectionManagerInterface {
   void do_accept_ssl();
   void do_await_stop();
 
-  virtual void onNewConnection(std::shared_ptr<SnyConnection> conn) = 0;
 
   asio::io_context io_context_;
   asio::ssl::context io_context_ssl_;
