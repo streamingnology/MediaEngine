@@ -56,21 +56,18 @@ std::shared_ptr<RtmpStream> RtmpStream::Create(std::string conn_name) {
   return stream;
 }
 
-RtmpStream::RtmpStream(std::string conn_name) : threads_(this) {
-  //_remote = client_socket;
-  _import_chunk = std::make_shared<RtmpImportChunk>(RTMP_DEFAULT_CHUNK_SIZE);
-  _export_chunk = std::make_shared<RtmpExportChunk>(false, RTMP_DEFAULT_CHUNK_SIZE);
-  _media_info = std::make_shared<RtmpMediaInfo>();
-
-  // For debug statistics
-  _stream_check_time = time(nullptr);
-  published_ = false;
-  conn_name_ = conn_name;
-}
+RtmpStream::RtmpStream(std::string conn_name)
+    : threads_(this),
+      _import_chunk(std::make_shared<RtmpImportChunk>(RTMP_DEFAULT_CHUNK_SIZE)),
+      _export_chunk(std::make_shared<RtmpExportChunk>(false, RTMP_DEFAULT_CHUNK_SIZE)),
+      _media_info(std::make_shared<RtmpMediaInfo>()),
+      conn_name_(conn_name),
+      published_(false),
+      _stream_check_time(time(nullptr)) {}
 
 RtmpStream::~RtmpStream() { stop(); }
 
-bool RtmpStream::OnDataReceived(const char *data_buffer, int data_size) {
+bool RtmpStream::OnDataReceived(const char *data_buffer, const int data_size) {
   mutex_.lock();
   auto raw_data = std::make_shared<ov::Data>(data_buffer, data_size);
   incomming_data_.push_back(raw_data);
@@ -79,7 +76,7 @@ bool RtmpStream::OnDataReceived(const char *data_buffer, int data_size) {
   return true;
 }
 
-bool RtmpStream::AddTrack(std::shared_ptr<MediaTrack> track) {
+bool RtmpStream::AddTrack(const std::shared_ptr<MediaTrack> track) {
   _tracks.insert(std::make_pair(track->GetId(), track));
   switch (track->GetCodecId()) {
     case cmn::MediaCodecId::H264:
@@ -98,7 +95,7 @@ bool RtmpStream::AddTrack(std::shared_ptr<MediaTrack> track) {
   return true;
 }
 
-std::shared_ptr<MediaTrack> RtmpStream::GetTrack(int32_t id) {
+std::shared_ptr<MediaTrack> RtmpStream::GetTrack(const int32_t id) const {
   auto item = _tracks.find(id);
   if (item == _tracks.end()) {
     return nullptr;
@@ -1365,7 +1362,7 @@ ov::String RtmpStream::GetEncoderTypeString(RtmpEncoderType encoder_type) {
 }
 
 bool RtmpStream::ConvertToSnyMediaSample(std::shared_ptr<MediaTrack> &media_track,
-                                         std::shared_ptr<MediaPacket> media_packet) {
+                                         const std::shared_ptr<MediaPacket> media_packet) {
   if (media_packet->GetMediaType() == cmn::MediaType::Video) {
     if (media_packet->GetPacketType() == cmn::PacketType::SEQUENCE_HEADER && media_track->GetCodecExtradata().empty()) {
       std::vector<uint8_t> extradata;
@@ -1424,7 +1421,7 @@ bool RtmpStream::SendFrame(std::shared_ptr<sny::SnyMediaSample> media_sample) {
   return true;
 }
 
-int RtmpStream::onThreadProc(int id) {
+int RtmpStream::onThreadProc(const int id) {
   while (!threads_.isStop(id)) {
     mutex_.lock();
     std::shared_ptr<ov::Data> raw_data = nullptr;
@@ -1434,7 +1431,7 @@ int RtmpStream::onThreadProc(int id) {
     }
     mutex_.unlock();
     if (!raw_data) {
-      std::unique_lock lock(mutex_cv_);
+      std::unique_lock lock(mutex_);
       cv_.wait(lock);
       continue;
     }

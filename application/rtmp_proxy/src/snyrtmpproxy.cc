@@ -48,6 +48,10 @@ void SnyRTMPProxy::stop() {
 void SnyRTMPProxy::OnRTMPNewConnectCallback(const weak_ptr<uv::TcpConnection>& conn, const string& conn_name) {
 
   std::lock_guard lk(mutex_);
+  if (sny_multi_rtmp_publish_.find(conn_name) != sny_multi_rtmp_publish_.end()) {
+    LOG(ERROR) << "This connection is already log in, conn name is: " << conn_name;
+    return;
+  }
   auto rtmp_publish = std::make_shared<SnyMultiRTMPPublish>(conn_name);
   rtmp_publish->setConfigure(cnf_);
   sny_multi_rtmp_publish_.insert(std::make_pair(conn_name, rtmp_publish));

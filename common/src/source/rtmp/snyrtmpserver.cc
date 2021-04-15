@@ -86,7 +86,7 @@ void SnyRTMPServer::onRTMPConnectCloseCallback(const std::weak_ptr<uv::TcpConnec
 }
 
 void SnyRTMPServer::onRTMPMessageReceived(const uv::TcpConnectionPtr& conn, const char* data, ssize_t size) {
-  auto conn_name = conn->Name();
+  const std::string& conn_name = conn->Name();
   auto item = rtmp_streams_.find(conn_name);
   if (item != rtmp_streams_.end()) {
     item->second->OnDataReceived(data, size);

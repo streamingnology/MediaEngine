@@ -50,7 +50,6 @@ int main(int argc, char** args) {
       break;
     }
 
-    std::map<std::string, std::shared_ptr<app::SnyMultiRTMPPublish>> rtmp_proxys;
     auto rtmp_proxy = std::make_shared<app::SnyRTMPProxy>();
     rtmp_proxy->setConfigure(rtmp_proxy_cnf);
     result = rtmp_proxy->start();
