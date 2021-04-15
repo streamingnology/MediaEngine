@@ -11,7 +11,10 @@ namespace app {
 class SnyRTMPProxy : public sny::SnySourceCallback {
  public:
   SnyRTMPProxy();
-  ~SnyRTMPProxy() override;
+  SnyRTMPProxy(SnyRTMPProxy&) = delete;
+  virtual ~SnyRTMPProxy();
+
+  SnyRTMPProxy& operator=(SnyRTMPProxy) = delete;
 
   void setConfigure(std::shared_ptr<SnyRTMPProxyConf> cnf) { cnf_ = std::move(cnf); }
 
@@ -19,13 +22,14 @@ class SnyRTMPProxy : public sny::SnySourceCallback {
   void stop();
 
  public:
-  void OnRTMPNewConnectCallback(const std::weak_ptr<uv::TcpConnection>& conn, std::string& conn_name);
-  void OnRTMPConnectCloseCallback(std::string& conn_name);
-  void OnRTMPSendSampleCallback(std::string& conn_name, std::shared_ptr<sny::SnyMediaSample> sample);
+  void OnRTMPNewConnectCallback(const std::weak_ptr<uv::TcpConnection>& conn, const std::string& conn_name);
+  void OnRTMPConnectCloseCallback(const std::string& conn_name);
+  void OnRTMPSendSampleCallback(const std::string& conn_name, const std::shared_ptr<sny::SnyMediaSample> sample);
 
-  void onRtmpAppStreamName(std::string conn_name, std::string app_name, std::string stream_name) override;
-  void onTrack(std::string conn_name, std::map<int32_t, std::shared_ptr<MediaTrack>> tracks) override;
-  void onSample(std::string conn_name, std::shared_ptr<sny::SnyMediaSample> sample) override;
+  void onRtmpAppStreamName(const std::string& conn_name, const std::string& app_name,
+                           const std::string& stream_name) override;
+  void onTrack(const std::string& conn_name, const std::map<int32_t, std::shared_ptr<MediaTrack>>& tracks) override;
+  void onSample(const std::string& conn_name, const std::shared_ptr<sny::SnyMediaSample> sample) override;
 
  private:
   std::mutex mutex_;

@@ -14,23 +14,27 @@
 #include <vector>
 #include "snyrtmpproxyconf.h"
 namespace app {
-class SnyMultiRTMPPublish : public sny::SnySourceCallback {
+class SnyMultiRTMPPublish final: public sny::SnySourceCallback {
  public:
   SnyMultiRTMPPublish(std::string name);
-  ~SnyMultiRTMPPublish();
+  SnyMultiRTMPPublish(const SnyMultiRTMPPublish&) = delete;
+  virtual ~SnyMultiRTMPPublish();
+
+  SnyMultiRTMPPublish& operator=(SnyMultiRTMPPublish&) = delete;
 
   void start();
   void stop();
-  int onThreadProc(int id);
+  int onThreadProc(const int id);
 
-  void onRtmpAppStreamName(std::string conn_name, std::string app_name, std::string stream_name) override;
-  void onTrack(std::string conn_name, std::map<int32_t, std::shared_ptr<MediaTrack>> tracks) override;
-  void onSample(std::string conn_name, std::shared_ptr<sny::SnyMediaSample> sample) override;
+  void onRtmpAppStreamName(const std::string& conn_name, const std::string& app_name,
+                           const std::string& stream_name) override;
+  void onTrack(const std::string& conn_name, const std::map<int32_t, std::shared_ptr<MediaTrack>>& tracks) override;
+  void onSample(const std::string& conn_name, const std::shared_ptr<sny::SnyMediaSample> sample) override;
 
-  void setConfigure(std::shared_ptr<SnyRTMPProxyConf> cnf) { cnf_ = std::move(cnf); }
+  void setConfigure(const std::shared_ptr<SnyRTMPProxyConf> cnf) { cnf_ = cnf; }
 
  private:
-  std::shared_ptr<sny::SnyIMuxer> createRtmpMuxer(const std::string& url);
+  std::shared_ptr<sny::SnyIMuxer> createRtmpMuxer(const std::string& url) const;
 
  private:
   std::string name_;

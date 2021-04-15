@@ -11,8 +11,9 @@ class SnySourceCallback {
  public:
   SnySourceCallback() = default;
   virtual ~SnySourceCallback() = default;
-  virtual void onRtmpAppStreamName(std::string conn_name, std::string app_name, std::string stream_name) = 0;
-  virtual void onTrack(std::string conn_name, std::map<int32_t, std::shared_ptr<MediaTrack>> tracks) = 0;
-  virtual void onSample(std::string conn_name, std::shared_ptr<sny::SnyMediaSample> sample) = 0;
+  virtual void onRtmpAppStreamName(const std::string& conn_name, const std::string& app_name,
+                                   const std::string& stream_name) = 0;
+  virtual void onTrack(const std::string& conn_name, const std::map<int32_t, std::shared_ptr<MediaTrack>>& tracks) = 0;
+  virtual void onSample(const std::string& conn_name, const std::shared_ptr<sny::SnyMediaSample> sample) = 0;
 };
 }  // namespace sny

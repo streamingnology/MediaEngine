@@ -7,18 +7,21 @@
 #include "core/snyutils.h"
 namespace sny {
 SnyRTMPServer::SnyRTMPServer(const std::shared_ptr<uv::EventLoop>& loop, SnyUI16 rtmp_port)
-    : threads_(this), uv::TcpServer(loop.get()), loop_(loop), rtmp_port_(rtmp_port), timeout_sec_(kRTMPTimeoutSec) {
+    : uv::TcpServer(loop.get()), rtmp_port_(rtmp_port), timeout_sec_(kRTMPTimeoutSec), loop_(loop), threads_(this),
+      new_connect_callback_(nullptr), connect_close_callback_(nullptr), source_callback_(nullptr) {
+
   setNewConnectCallback(std::bind(&SnyRTMPServer::onRTMPNewConnectCallback, this, std::placeholders::_1));
   setConnectCloseCallback(std::bind(&SnyRTMPServer::onRTMPConnectCloseCallback, this, std::placeholders::_1));
   setMessageCallback(std::bind(&SnyRTMPServer::onRTMPMessageReceived, this, std::placeholders::_1,
                                std::placeholders::_2, std::placeholders::_3));
+
 }
 
 SnyRTMPServer::~SnyRTMPServer() { stop(); }
 
 SnyUI16 SnyRTMPServer::getRtmpPort() const { return rtmp_port_; }
 
-void SnyRTMPServer::setRtmpPort(unsigned short rtmpPort) { rtmp_port_ = rtmpPort; }
+void SnyRTMPServer::setRtmpPort(const SnyUI16 rtmpPort) { rtmp_port_ = rtmpPort; }
 
 SnyInt SnyRTMPServer::getTimeout() const { return timeout_sec_; }
 
@@ -50,14 +53,16 @@ void SnyRTMPServer::stop() {
 void SnyRTMPServer::onRTMPNewConnectCallback(const std::weak_ptr<uv::TcpConnection>& conn) {
   std::shared_ptr<uv::TcpConnection> tcp_connection = conn.lock();
   if (tcp_connection) {
-    auto conn_name = tcp_connection->Name();
+    const std::string& conn_name = tcp_connection->Name();
     LOG(DEBUG) << "new connection: " << conn_name;
+
     auto rtmp_stream = pvd::RtmpStream::Create(conn_name);
     rtmp_stream->setRTMPCallback(this);
     rtmp_stream->setRTMPSendDataCallback(std::bind(&SnyRTMPServer::onRTMPSendDataCallback, this, std::placeholders::_1,
                                                    std::placeholders::_2, std::placeholders::_3));
     rtmp_stream->start();
     rtmp_streams_.insert(std::make_pair(conn_name, rtmp_stream));
+    
     if (new_connect_callback_) {
       new_connect_callback_(conn, conn_name);
     }
@@ -68,7 +73,7 @@ void SnyRTMPServer::onRTMPNewConnectCallback(const std::weak_ptr<uv::TcpConnecti
 void SnyRTMPServer::onRTMPConnectCloseCallback(const std::weak_ptr<uv::TcpConnection>& conn) {
   std::shared_ptr<uv::TcpConnection> tcp_connection = conn.lock();
   if (tcp_connection) {
-    std::string conn_name = tcp_connection->Name();
+    const std::string& conn_name = tcp_connection->Name();
     LOG(DEBUG) << "connection close: " << conn_name;
     rtmp_streams_.erase(conn_name);
     if (connect_close_callback_) {
@@ -94,6 +99,7 @@ int SnyRTMPServer::onThreadProc(int id) {
 }
 
 void SnyRTMPServer::onRTMPSendDataCallback(string& conn_name, const char* data, const int size) {
+  //TODO: learn uv-cpp how to manage buffer without copy, maybe need to modify uv-cpp to support this feature
   char* ptr = new char[size];
   memcpy(ptr, data, size);
   writeInLoop(conn_name, ptr, size, [](uv::WriteInfo& info) {
@@ -109,17 +115,19 @@ void SnyRTMPServer::setRTMPConnectCloseCallback(const SnyRTMPServer::OnRTMPConne
   connect_close_callback_ = callback;
 }
 
-void SnyRTMPServer::onRtmpAppStreamName(std::string conn_name, std::string app_name, std::string stream_name) {
+void SnyRTMPServer::onRtmpAppStreamName(const std::string& conn_name, const std::string& app_name,
+                                        const std::string& stream_name) {
   if (source_callback_) {
     source_callback_->onRtmpAppStreamName(conn_name, app_name, stream_name);
   }
 }
-void SnyRTMPServer::onTrack(std::string conn_name, std::map<int32_t, std::shared_ptr<MediaTrack>> tracks) {
+void SnyRTMPServer::onTrack(const std::string& conn_name,
+                            const std::map<int32_t, std::shared_ptr<MediaTrack>>& tracks) {
   if (source_callback_) {
     source_callback_->onTrack(conn_name, tracks);
   }
 }
-void SnyRTMPServer::onSample(std::string conn_name, std::shared_ptr<sny::SnyMediaSample> sample) {
+void SnyRTMPServer::onSample(const std::string& conn_name, const std::shared_ptr<sny::SnyMediaSample> sample) {
   if (source_callback_) {
     source_callback_->onSample(conn_name, sample);
   }
