@@ -3,7 +3,7 @@
 #include "aac_specific_config.h"
 #include "core/bit_reader.h"
 
-#define ADTS_MIN_SIZE 7
+constexpr auto ADTS_MIN_SIZE = 7;
 
 class AACAdts {
  public:
