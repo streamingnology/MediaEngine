@@ -10,6 +10,8 @@
 #ifdef Q_OS_WINDOWS
 #include <io.h>
 #else
+#define _LARGEFILE64_SOURCE /* See feature_test_macros(7) */
+#include <sys/types.h>
 #include <unistd.h>
 #define _access access
 #endif
@@ -961,6 +963,10 @@ int64_t FileIOStream::fseek64Inner(FILE *stream, int64_t offset, int whence) con
 #if defined(Q_OS_WINDOWS)
     int fd = _fileno(stream);
     int64_t curpos = _lseeki64(fd, offset, whence);
+#elif defined(Q_OS_MACX)
+    // TODO check if lseek support large file on MacOS
+    int fd = fileno(stream);
+    int64_t curpos = lseek(fd, offset, whence);
 #else
     int fd = fileno(stream);
     int64_t curpos = lseek64(fd, offset, whence);
