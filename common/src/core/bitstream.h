@@ -9,6 +9,7 @@
 */
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 
 namespace sny
 {

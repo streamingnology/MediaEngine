@@ -15,7 +15,7 @@ class SnyRTMPProxyPublishItem final{
   SnyRTMPProxyPublishItem(const SnyRTMPProxyPublishItem&) = default;
   ~SnyRTMPProxyPublishItem() = default;
 
-  SnyRTMPProxyPublishItem& operator=(SnyRTMPProxyPublishItem&) = default;
+  SnyRTMPProxyPublishItem& operator=(const SnyRTMPProxyPublishItem&) = default;
 
   std::string publish_name_;
   std::string publish_url_;

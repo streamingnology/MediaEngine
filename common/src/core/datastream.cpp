@@ -6,7 +6,7 @@
 #include "datastream.h"
 #include "core/snyplatform.h"
 #include <cassert>
-
+#include <cstring>
 #ifdef Q_OS_WINDOWS
 #include <io.h>
 #else

@@ -2,7 +2,7 @@
  *copyleft (c) 2021 www.streamingnology.com
  *code released under GPL license
  */
-#include "snymuxerimplmpegtshelper.h"
+#include "snymuxerImplmpegtshelper.h"
 
 namespace sny {
 

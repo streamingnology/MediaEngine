@@ -2,7 +2,7 @@
  *copyleft (c) 2021 www.streamingnology.com
  *code released under GPL license
  */
-#include "snymuxerimplmpegts.h"
+#include "snymuxerImplmpegts.h"
 #include "core/snyeasylogging.h"
 #include "core/snyutils.h"
 #include "media/bitstream/aac/snyaaclatmtoadts.h"

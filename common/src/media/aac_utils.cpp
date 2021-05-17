@@ -1,6 +1,6 @@
 #include "aac_utils.h"
 #include "core/bitstream.h"
-
+#include <cstdlib>
 namespace sny
 {
 

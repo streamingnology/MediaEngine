@@ -1,5 +1,3 @@
-#pragma once
-
 #include "media_common.h"
 
 namespace sny

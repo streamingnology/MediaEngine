@@ -5,7 +5,8 @@
 #pragma once
 
 #include <unordered_map>
-
+#include <vector>
+#include <cstdlib>
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -190,11 +191,11 @@ struct MediaTrackInfo
      * @param track_id track id for this media track, it should be unique
      * @param bitrate bitrate of this media track
      */
-    MediaTrackInfo::MediaTrackInfo(const MediaType media_type, const MediaCodecId codec_id, const BitStreamFormat bsf,
+    MediaTrackInfo(const MediaType media_type, const MediaCodecId codec_id, const BitStreamFormat bsf,
                                    const StreamFormat &stream_fmt, std::vector<uint8_t> &extra_data,
                                    const MediaRational rational, const int track_id, const int bitrate);
 
-    MediaTrackInfo::MediaTrackInfo(const MediaTrackInfo &other);
+    MediaTrackInfo(const MediaTrackInfo &other);
 
     MediaType mediaType_{MediaType::kUnknown};
 
