@@ -70,9 +70,9 @@ class FileDemuxerBase : public IFileDemuxer
 
     virtual const std::vector<std::shared_ptr<MediaTrackInfo>> getMediaTrackInfos() const override;
 
-    virtual std::shared_ptr<MediaSample> readSample();
+    virtual std::shared_ptr<MediaSample> readSample() override;
 
-    virtual bool isEof() const;
+    virtual bool isEof() const override;
 
   protected:
     void setEof(const bool eof);
