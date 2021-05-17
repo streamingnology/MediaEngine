@@ -964,7 +964,7 @@ int64_t FileIOStream::fseek64Inner(FILE *stream, int64_t offset, int whence) con
     int fd = _fileno(stream);
     int64_t curpos = _lseeki64(fd, offset, whence);
 #elif defined(Q_OS_MACX)
-    // TODO check if lseek support large file on MacOS
+    // MacOS doesn't have lseek64. However, off_t is 64-bit anyway.
     int fd = fileno(stream);
     int64_t curpos = lseek(fd, offset, whence);
 #else
